@@ -1,0 +1,45 @@
+name: Release
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          PREV_TAG=$(git tag --sort=-version:refname | head -2 | tail -1)
+          if [ -z "$PREV_TAG" ]; then
+            echo "notes=Initial release" >> $GITHUB_OUTPUT
+          else
+            NOTES=$(git log --oneline --no-decorate "$PREV_TAG..HEAD" 2>/dev/null | grep -E '^(feat|fix|docs|chore|refactor)' || echo "No structured commits found")
+            {
+              echo "notes<<EOF"
+              echo "$NOTES"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## ${{ github.ref_name }}
+
+            ${{ steps.notes.outputs.notes }}
+
+            ### What's Changed
+            See the full commit log for details.
+          generate_release_notes: true
+          draft: false
+          prerelease: false

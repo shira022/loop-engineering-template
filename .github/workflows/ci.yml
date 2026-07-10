@@ -14,7 +14,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check YAML frontmatter in skills
         run: |
           python3 scripts/validate-skills.py
@@ -52,7 +52,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup (${{ matrix.lang.id }})
         run: |
           if [ "${{ matrix.lang.id }}" = "python" ]; then

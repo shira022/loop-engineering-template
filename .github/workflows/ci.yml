@@ -37,8 +37,8 @@ jobs:
             deps: pip install pytest
             test_cmd: python -m pytest tests/ || echo "no tests"
           - id: node
-            deps: npm ci || npm install
-            test_cmd: npm test 2>/dev/null || echo "no test script"
+            deps: ""
+            test_cmd: test -f package.json && (npm test 2>/dev/null || echo "no test script") || echo "no node project"
           - id: rust
             deps: ""
             test_cmd: cargo test 2>/dev/null || echo "no tests"

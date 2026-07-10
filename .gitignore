@@ -1,0 +1,13 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+dist/
+build/
+.vscode/
+.idea/
+*.log
+.DS_Store
+# learnings/*.md  ← ループエンジニアリングのため learnings は追跡対象

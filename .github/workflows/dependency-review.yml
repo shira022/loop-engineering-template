@@ -11,6 +11,7 @@ jobs:
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
+    continue-on-error: true  # テンプレートリポジトリにはlockfileが無いため
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

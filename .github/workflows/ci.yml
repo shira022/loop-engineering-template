@@ -19,7 +19,7 @@ jobs:
         run: |
           python3 scripts/validate-skills.py
       - name: Markdown lint
-        uses: DavidAnson/markdownlint-cli2-action@v16
+        uses: DavidAnson/markdownlint-cli2-action@v24
         continue-on-error: true
         with:
           command: config

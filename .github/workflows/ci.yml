@@ -57,10 +57,10 @@ jobs:
       - name: Detect project
         run: |
           echo "Project language detection:"
-          test -f pyproject.toml && echo "  Python: pyproject.toml found"
-          test -f package.json && echo "  Node.js: package.json found"
-          test -f Cargo.toml && echo "  Rust: Cargo.toml found"
-          test -f go.mod && echo "  Go: go.mod found"
+          test -f pyproject.toml && echo "  Python: pyproject.toml found" || true
+          test -f package.json && echo "  Node.js: package.json found" || true
+          test -f Cargo.toml && echo "  Rust: Cargo.toml found" || true
+          test -f go.mod && echo "  Go: go.mod found" || true
 
   branch-validation:
     name: Branch Policy Validation

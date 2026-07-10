@@ -28,7 +28,7 @@ jobs:
             !node_modules/**
 
   build-and-test:
-    name: Build & Test
+    name: Build & Test (${{ matrix.lang.id }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -36,29 +36,21 @@ jobs:
           - id: python
             deps: pip install pytest
             test_cmd: python -m pytest tests/ || echo "no tests"
-            setup: ""
           - id: node
             deps: npm ci || npm install
             test_cmd: npm test 2>/dev/null || echo "no test script"
-            setup: ""
           - id: rust
             deps: ""
             test_cmd: cargo test 2>/dev/null || echo "no tests"
-            setup: ""
           - id: go
             deps: ""
             test_cmd: go test ./... 2>/dev/null || echo "no tests"
-            setup: ""
       fail-fast: false
 
     steps:
       - uses: actions/checkout@v4
-      - name: Setup (${{ matrix.lang.id }})
-        run: |
-          if [ "${{ matrix.lang.id }}" = "python" ]; then
-            ${{ matrix.lang.setup }}
-          fi
       - name: Install dependencies (${{ matrix.lang.id }})
+        if: matrix.lang.deps != ''
         run: ${{ matrix.lang.deps }}
       - name: Test (${{ matrix.lang.id }})
         run: ${{ matrix.lang.test_cmd }}
@@ -70,7 +62,6 @@ jobs:
           test -f Cargo.toml && echo "  Rust: Cargo.toml found"
           test -f go.mod && echo "  Go: go.mod found"
 
-  # hotfix/release ブランチでは branch 情報を検証
   branch-validation:
     name: Branch Policy Validation
     if: github.event_name == 'pull_request'
@@ -80,6 +71,12 @@ jobs:
         run: |
           PR_SOURCE="${{ github.head_ref }}"
           PR_TARGET="${{ github.base_ref }}"
+
+          # Allow dependabot branches (they follow their own convention)
+          if echo "$PR_SOURCE" | grep -q '^dependabot/'; then
+            echo "✅ dependabot branch: $PR_SOURCE → $PR_TARGET"
+            exit 0
+          fi
 
           case "$PR_SOURCE" in
             feature/*)
@@ -110,12 +107,11 @@ jobs:
               fi
               echo "✅ develop → main: OK"
               ;;
+            main)
+              echo "❌ main からの PR は許可されていません"
+              exit 1
+              ;;
             *)
-              # main→他やその他のブランチへの PR は禁止（ルールで制御）
-              if [ "$PR_SOURCE" = "main" ]; then
-                echo "❌ main からの PR は許可されていません"
-                exit 1
-              fi
               echo "⚠️  非標準ブランチ名です: $PR_SOURCE → $PR_TARGET"
               ;;
           esac

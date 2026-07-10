@@ -1,6 +1,6 @@
 ---
 name: project-bootstrapper
-version: 1.0.0
+version: 2.0.0
 category: management
 tags: [bootstrap, setup, initialization]
 description: このテンプレートから新規プロジェクトをブートストラップし、GitHubリポジトリ作成、クローン、言語初期化、レジストリ登録までを自動化します。
@@ -10,6 +10,11 @@ description: このテンプレートから新規プロジェクトをブート�
 
 このスキルは loop-engineering-template から**新しいプロジェクト**をゼロから立ち上げます。
 実行が完了すると、自分自身の SKILL.md を削除する**セルフデストラクト**機能を持ちます。
+
+## 前提条件
+
+- `gh` CLI がインストールされ、認証済みであること
+- 環境変数 `$PROJECTS_DIR` が未設定の場合、`$HOME/project` をデフォルトとして使用する
 
 ## 使用方法
 
@@ -51,14 +56,16 @@ gh repo create <project-name> --template <template-repo> --<public|private>
 以下のディレクトリ構成でクローン・セットアップを行います：
 
 ```
-/home/<user>/project/<name>/
+${PROJECTS_DIR:-$HOME/project}/<name>/
 ├── repo-<name>          # メインリポジトリ（クローン先）
 └── worktrees/           # git worktree 格納ディレクトリ
 ```
 
 ```bash
-git clone <clone-url> /home/<user>/project/<name>/repo-<name>
-mkdir -p /home/<user>/project/<name>/worktrees/
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
+mkdir -p "$PROJECTS_DIR/<name>"
+git clone <clone-url> "$PROJECTS_DIR/<name>/repo-<name>"
+mkdir -p "$PROJECTS_DIR/<name>/worktrees/"
 ```
 
 ### Step 4: 言語に応じたプロジェクト初期化
@@ -68,7 +75,7 @@ mkdir -p /home/<user>/project/<name>/worktrees/
 #### Python
 - `src/` ディレクトリを作成し `__init__.py` を配置
 - `tests/` ディレクトリを作成し `__init__.py` と `conftest.py` を配置
-- `.github/workflows/ci.yml` に Python 用の CI 設定を記述（pytest + flake8 / ruff）
+- `.github/workflows/ci.yml` に Python 用の CI 設定を記述（pytest + ruff）
 
 #### TypeScript
 - `src/` ディレクトリを作成
@@ -88,7 +95,8 @@ mkdir -p /home/<user>/project/<name>/worktrees/
 ### Step 5: 初期コミット & プッシュ
 
 ```bash
-cd /home/<user>/project/<name>/repo-<name>
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
+cd "$PROJECTS_DIR/<name>/repo-<name>"
 git add -A
 git commit -m "🎉 Initial commit: <project-name> - <description>"
 git push origin main
@@ -96,11 +104,11 @@ git push origin main
 
 ### Step 6: プロジェクトレジストリへの登録
 
-`/home/<user>/project/repo-registry.yaml` に以下のフォーマットでプロジェクト情報を追記します：
+`${PROJECTS_DIR:-$HOME/project}/repo-registry.yaml` に以下のフォーマットでプロジェクト情報を追記します：
 
 ```yaml
 - name: <project-name>
-  path: /home/<user>/project/<name>/repo-<name>
+  path: ${PROJECTS_DIR:-$HOME/project}/<name>/repo-<name>
   visibility: <public|private>
   language: <language>
   framework: <framework>
@@ -118,7 +126,8 @@ git push origin main
 （テンプレート側のファイルには影響しません。）
 
 ```bash
-rm /home/<user>/project/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.md
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
+rm "$PROJECTS_DIR/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.md"
 ```
 
 ### Step 8: 完了報告
@@ -128,7 +137,7 @@ rm /home/<user>/project/<name>/repo-<name>/.agents/skills/project-bootstrapper/S
 ```
 ✅ プロジェクト <name> のブートストラップが完了しました。
    リポジトリ: <clone-url>
-   ローカル:  /home/<user>/project/<name>/repo-<name>
+   ローカル:  ${PROJECTS_DIR:-$HOME/project}/<name>/repo-<name>
    言語:      <language>
    可視性:    <public|private>
    説明:      <description>
@@ -140,5 +149,6 @@ rm /home/<user>/project/<name>/repo-<name>/.agents/skills/project-bootstrapper/S
 
 - `gh` CLI がインストールされ、認証済みであることを前提とします。
 - テンプレートリポジトリは自動検出されますが、`gh repo view` で確認可能です。
+- プロジェクトのルートディレクトリは `${PROJECTS_DIR:-$HOME/project}/<name>/repo-<name>` です。`$PROJECTS_DIR` 環境変数で上書き可能です。
 - セルフデストラクトは新しいプロジェクト内のファイルのみ削除します。テンプレート本体には影響しません。
-- プロジェクト名が既に `/home/<user>/project/repo-registry.yaml` に存在する場合は上書き確認を行います。
+- プロジェクト名が既に `repo-registry.yaml` に存在する場合は上書き確認を行います。

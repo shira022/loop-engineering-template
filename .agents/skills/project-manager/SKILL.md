@@ -1,6 +1,6 @@
 ---
 name: project-manager
-version: 1.0.0
+version: 2.0.0
 category: management
 tags: [management, orchestration, worktree]
 description: 複数プロジェクトと git worktree を横断してタスクを管理・実行します。タスク実行、ステータス報告、キャンセル処理を統合的に行います。
@@ -9,6 +9,11 @@ description: 複数プロジェクトと git worktree を横断してタスク�
 # Project Manager
 
 このスキルは、プロジェクトレジストリと git worktree を活用して、複数プロジェクトにまたがるタスクの実行・監視・キャンセルを統合管理します。
+
+## 前提条件
+
+- 環境変数 `$PROJECTS_DIR` が未設定の場合、`$HOME/project` をデフォルトとして使用する
+- `gh` CLI がインストールされ、認証済みであること
 
 ## 使用方法
 
@@ -29,12 +34,12 @@ description: 複数プロジェクトと git worktree を横断してタスク�
 
 #### 1-a. プロジェクト情報の取得
 
-`/home/<user>/project/repo-registry.yaml` を読み込み、指定されたプロジェクト名で情報を検索します。
+`${PROJECTS_DIR:-$HOME/project}/repo-registry.yaml` を読み込み、指定されたプロジェクト名で情報を検索します。
 
 ```yaml
 # repo-registry.yaml フォーマット例
 - name: my-app
-  path: /home/<user>/project/my-app/repo-my-app
+  path: ${PROJECTS_DIR:-$HOME/project}/my-app/repo-my-app
   visibility: public
   language: typescript
   framework: next.js
@@ -49,7 +54,8 @@ description: 複数プロジェクトと git worktree を横断してタスク�
 対象プロジェクトのリポジトリ内で、タスク用のブランチを作成し worktree を追加します：
 
 ```bash
-cd /home/<user>/project/<name>/repo-<name>
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
+cd "$PROJECTS_DIR/<name>/repo-<name>"
 
 # 最新の main を取得
 git fetch origin
@@ -59,7 +65,7 @@ BRANCH="task/<task-slug>-$(date +%s)"
 git branch "$BRANCH" origin/main
 
 # worktree を作成
-WORKTREE_PATH="/home/<user>/project/<name>/worktrees/$BRANCH"
+WORKTREE_PATH="$PROJECTS_DIR/<name>/worktrees/$BRANCH"
 git worktree add "$WORKTREE_PATH" "$BRANCH"
 ```
 
@@ -103,13 +109,14 @@ hermes run "<task-description>" --log /tmp/hermes-task-<name>-<timestamp>.log &
 エージェントのプロセスが正常終了した場合、自動で Pull Request を作成します：
 
 ```bash
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
 cd "$WORKTREE_PATH"
 git add -A
 git commit -m "<task-description>"
 git push origin "$BRANCH"
 
 gh pr create \
-  --repo "/home/<user>/project/<name>/repo-<name>" \
+  --repo "$PROJECTS_DIR/<name>/repo-<name>" \
   --base main \
   --head "$BRANCH" \
   --title "<task-description>" \
@@ -121,7 +128,8 @@ gh pr create \
 PR 作成完了後、worktree を削除します：
 
 ```bash
-cd /home/<user>/project/<name>/repo-<name>
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
+cd "$PROJECTS_DIR/<name>/repo-<name>"
 git worktree remove "$WORKTREE_PATH"
 git branch -d "$BRANCH"
 ```
@@ -133,9 +141,10 @@ git branch -d "$BRANCH"
 全プロジェクトのアクティブな worktree とタスク状況を一覧表示します：
 
 ```bash
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
 # 全プロジェクトの worktree 一覧を取得
-for repo in /home/<user>/project/*/repo-*; do
-  echo "=== $(basename $(dirname $repo)) ==="
+for repo in "$PROJECTS_DIR"/*/repo-*; do
+  echo "=== $(basename "$(dirname "$repo")") ==="
   git -C "$repo" worktree list
   echo ""
 done
@@ -145,12 +154,12 @@ done
 
 ```
 === my-app ===
-/home/<user>/project/my-app/repo-my-app  main (detached)
-/home/<user>/project/my-app/worktrees/task/add-auth-1717200000  task/add-auth-1717200000
+$PROJECTS_DIR/my-app/repo-my-app  main (detached)
+$PROJECTS_DIR/my-app/worktrees/task/add-auth-1717200000  task/add-auth-1717200000
 
 === api-server ===
-/home/<user>/project/api-server/repo-api-server  main (detached)
-/home/<user>/project/api-server/worktrees/task/fix-timeout-1717300000  task/fix-timeout-1717300000
+$PROJECTS_DIR/api-server/repo-api-server  main (detached)
+$PROJECTS_DIR/api-server/worktrees/task/fix-timeout-1717300000  task/fix-timeout-1717300000
 ```
 
 **アクティブなエージェントプロセス**も確認し、以下を表示します：
@@ -177,7 +186,8 @@ kill -KILL <pid> 2>/dev/null  # それでも終了しない場合
 #### 3-b. Worktree の削除
 
 ```bash
-cd /home/<user>/project/<name>/repo-<name>
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
+cd "$PROJECTS_DIR/<name>/repo-<name>"
 git worktree remove --force "$WORKTREE_PATH"
 git branch -D "$BRANCH" 2>/dev/null
 ```

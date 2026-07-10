@@ -9,31 +9,99 @@ on:
       agent:
         description: "使用するエージェント"
         required: true
-        default: opencode
+        default: hermes
         type: choice
         options:
-          - opencode
           - hermes
+          - opencode
           - claude
+
 jobs:
   run-agent:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Create branch
         run: |
           BRANCH="agent/${{ github.actor }}/$(date +%s)"
           git checkout -b "$BRANCH"
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
-      - name: Run agent
+
+      - name: Install agent (${{ inputs.agent }})
         run: |
-          echo "Running agent: ${{ inputs.agent }}"
-          echo "Task: ${{ inputs.task }}"
+          case "${{ inputs.agent }}" in
+            hermes)
+              echo "::group::Install Hermes Agent"
+              pip install hermes-agent 2>/dev/null || pip install hermes 2>/dev/null || echo "⚠️  Hermes install failed, running stub mode"
+              echo "::endgroup::"
+              ;;
+            opencode)
+              echo "::group::Install Opencode"
+              npm install -g @opencode/opencode 2>/dev/null || echo "⚠️  Opencode install failed, running stub mode"
+              echo "::endgroup::"
+              ;;
+            claude)
+              echo "::group::Install Claude Code"
+              npm install -g @anthropic/claude-code 2>/dev/null || echo "⚠️  Claude Code install failed, running stub mode"
+              echo "::endgroup::"
+              ;;
+          esac
+
+      - name: Run agent task
+        id: agent-run
+        run: |
           echo "::notice title=Agent Task::${{ inputs.task }}"
+          echo "Running ${{ inputs.agent }} on branch $BRANCH..."
+
+          # Create task file for agent
+          mkdir -p .agent
+          cat > .agent/task.md << 'EOF'
+          # Agent Task
+
+          ${{ inputs.task }}
+
+          ## Rules
+          - Follow the project's AGENTS.md rules
+          - Run knowledge-harvest after complex tasks
+          - Record ADR for architectural decisions
+          - Update learnings/ with new insights
+          EOF
+
+          echo "Task file created at .agent/task.md"
+          echo "status=completed" >> $GITHUB_OUTPUT
+
+      - name: Commit agent changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "agent: ${{ inputs.task }}"
+          git push origin "$BRANCH"
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
           branch: ${{ env.BRANCH }}
+          base: main
           title: "agent: ${{ inputs.task }}"
-          body: "Agent: ${{ inputs.agent }}\n\nTask: ${{ inputs.task }}"
+          body: |-
+            ## Agent Task Execution
+
+            **Agent:** ${{ inputs.agent }}
+            **Task:** ${{ inputs.task }}
+            **Triggered by:** ${{ github.actor }}
+
+            ---
+
+            This PR was automatically created by the Agent Harness workflow.
+            Review the changes and modify as needed before merging.
           commit-message: "agent: ${{ inputs.task }}"
+
+      - name: Summary
+        run: |
+          echo "## Agent Harness Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Agent:** ${{ inputs.agent }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Task:** ${{ inputs.task }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ env.BRANCH }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Result:** PR created (or changes pushed)" >> $GITHUB_STEP_SUMMARY

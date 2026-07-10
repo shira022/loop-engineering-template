@@ -4,30 +4,64 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+
 jobs:
-  build:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup
+      - name: Check YAML frontmatter in skills
         run: |
-          if [ -f package.json ]; then
-            npm ci || npm install
-          elif [ -f pyproject.toml ]; then
-            pip install -e ".[dev]" || pip install pytest
-          elif [ -f Cargo.toml ]; then
-            echo "rust project"
-          elif [ -f go.mod ]; then
-            echo "go project"
-          fi
-      - name: Test
+          python3 scripts/validate-skills.py
+      - name: Markdown lint
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        continue-on-error: true
+        with:
+          command: config
+          globs: |
+            **/*.md
+            !node_modules/**
+
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lang:
+          - id: python
+            deps: pip install pytest
+            test_cmd: python -m pytest tests/ || echo "no tests"
+            setup: ""
+          - id: node
+            deps: npm ci || npm install
+            test_cmd: npm test 2>/dev/null || echo "no test script"
+            setup: ""
+          - id: rust
+            deps: ""
+            test_cmd: cargo test 2>/dev/null || echo "no tests"
+            setup: ""
+          - id: go
+            deps: ""
+            test_cmd: go test ./... 2>/dev/null || echo "no tests"
+            setup: ""
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup (${{ matrix.lang.id }})
         run: |
-          if [ -f package.json ]; then
-            npm test 2>/dev/null || echo "no test script"
-          elif [ -f pyproject.toml ]; then
-            pytest 2>/dev/null || python -m pytest 2>/dev/null || echo "no tests"
-          elif [ -f Cargo.toml ]; then
-            cargo test 2>/dev/null || echo "no tests"
-          else
-            echo "no test framework detected"
+          if [ "${{ matrix.lang.id }}" = "python" ]; then
+            ${{ matrix.lang.setup }}
           fi
+      - name: Install dependencies (${{ matrix.lang.id }})
+        run: ${{ matrix.lang.deps }}
+      - name: Test (${{ matrix.lang.id }})
+        run: ${{ matrix.lang.test_cmd }}
+      - name: Detect project
+        run: |
+          echo "Project language detection:"
+          test -f pyproject.toml && echo "  Python: pyproject.toml found"
+          test -f package.json && echo "  Node.js: package.json found"
+          test -f Cargo.toml && echo "  Rust: Cargo.toml found"
+          test -f go.mod && echo "  Go: go.mod found"

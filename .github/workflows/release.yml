@@ -9,10 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      discussions: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Determine release type
+        id: type
+        run: |
+          TAG="${{ github.ref_name }}"
+          PRERELEASE="false"
+          if echo "$TAG" | grep -qE '-(alpha|beta|rc|dev)'; then
+            PRERELEASE="true"
+          fi
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
 
       - name: Generate release notes
         id: notes
@@ -21,7 +32,7 @@ jobs:
           if [ -z "$PREV_TAG" ]; then
             echo "notes=Initial release" >> $GITHUB_OUTPUT
           else
-            NOTES=$(git log --oneline --no-decorate "$PREV_TAG..HEAD" 2>/dev/null | grep -E '^(feat|fix|docs|chore|refactor)' || echo "No structured commits found")
+            NOTES=$(git log --oneline --no-decorate "$PREV_TAG..HEAD" 2>/dev/null | grep -E '^(feat|fix|docs|chore|refactor|security)' || echo "No structured commits found")
             {
               echo "notes<<EOF"
               echo "$NOTES"
@@ -42,4 +53,4 @@ jobs:
             See the full commit log for details.
           generate_release_notes: true
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.type.outputs.prerelease }}

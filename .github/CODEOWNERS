@@ -1,0 +1,33 @@
+# CODEOWNERS
+# Each line is a file pattern followed by one or more owners.
+# Learn more: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners (fallback for everything not covered below)
+* @shira022
+
+# Core project configuration (requires senior maintainer review)
+/.github/ @shira022
+/.pre-commit-config.yaml @shira022
+/Makefile @shira022
+/CONTRIBUTING.md @shira022
+/SECURITY.md @shira022
+/LICENSE @shira022
+/AGENTS.md @shira022
+/pyproject.toml @shira022
+
+# CI/CD workflows (security-sensitive)
+/.github/workflows/ @shira022
+
+# Skills (skill definitions affect agent behavior)
+.agents/skills/ @shira022
+
+# Documentation
+/docs/ @shira022
+/README.md @shira022
+
+# Scripts (executed in CI or locally)
+/scripts/ @shira022
+
+# All other source files
+/src/ @shira022
+/tests/ @shira022

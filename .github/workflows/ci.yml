@@ -1,9 +1,13 @@
 name: CI
 on:
   push:
-    branches: [main]
+    branches: [main, develop, release/*, hotfix/*]
   pull_request:
-    branches: [main]
+    branches: [main, develop, release/*, hotfix/*]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
@@ -65,3 +69,53 @@ jobs:
           test -f package.json && echo "  Node.js: package.json found"
           test -f Cargo.toml && echo "  Rust: Cargo.toml found"
           test -f go.mod && echo "  Go: go.mod found"
+
+  # hotfix/release ブランチでは branch 情報を検証
+  branch-validation:
+    name: Branch Policy Validation
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate source/target branch policy
+        run: |
+          PR_SOURCE="${{ github.head_ref }}"
+          PR_TARGET="${{ github.base_ref }}"
+
+          case "$PR_SOURCE" in
+            feature/*)
+              if [ "$PR_TARGET" != "develop" ]; then
+                echo "❌ feature/* ブランチは develop にのみマージ可能です"
+                exit 1
+              fi
+              echo "✅ feature → develop: OK"
+              ;;
+            release/*)
+              if [ "$PR_TARGET" != "main" ] && [ "$PR_TARGET" != "develop" ]; then
+                echo "❌ release/* ブランチは main または develop にのみマージ可能です"
+                exit 1
+              fi
+              echo "✅ release → $PR_TARGET: OK"
+              ;;
+            hotfix/*)
+              if [ "$PR_TARGET" != "main" ] && [ "$PR_TARGET" != "develop" ]; then
+                echo "❌ hotfix/* ブランチは main または develop にのみマージ可能です"
+                exit 1
+              fi
+              echo "✅ hotfix → $PR_TARGET: OK"
+              ;;
+            develop)
+              if [ "$PR_TARGET" != "main" ]; then
+                echo "❌ develop ブランチは main にのみマージ可能です"
+                exit 1
+              fi
+              echo "✅ develop → main: OK"
+              ;;
+            *)
+              # main→他やその他のブランチへの PR は禁止（ルールで制御）
+              if [ "$PR_SOURCE" = "main" ]; then
+                echo "❌ main からの PR は許可されていません"
+                exit 1
+              fi
+              echo "⚠️  非標準ブランチ名です: $PR_SOURCE → $PR_TARGET"
+              ;;
+          esac

@@ -15,8 +15,14 @@ dev = [
     "pytest>=7",
     "pytest-cov>=4",
     "yamllint>=1",
+    "pre-commit>=3",
+    "bandit>=1.7",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".git", "node_modules"]
+skips = ["B101"]  # allow assert statements

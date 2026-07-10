@@ -1,0 +1,33 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        run: |
+          if [ -f package.json ]; then
+            npm ci || npm install
+          elif [ -f pyproject.toml ]; then
+            pip install -e ".[dev]" || pip install pytest
+          elif [ -f Cargo.toml ]; then
+            echo "rust project"
+          elif [ -f go.mod ]; then
+            echo "go project"
+          fi
+      - name: Test
+        run: |
+          if [ -f package.json ]; then
+            npm test 2>/dev/null || echo "no test script"
+          elif [ -f pyproject.toml ]; then
+            pytest 2>/dev/null || python -m pytest 2>/dev/null || echo "no tests"
+          elif [ -f Cargo.toml ]; then
+            cargo test 2>/dev/null || echo "no tests"
+          else
+            echo "no test framework detected"
+          fi

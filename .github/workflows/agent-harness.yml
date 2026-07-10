@@ -1,0 +1,39 @@
+name: Agent Harness
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "実行するタスクの説明"
+        required: true
+        type: string
+      agent:
+        description: "使用するエージェント"
+        required: true
+        default: opencode
+        type: choice
+        options:
+          - opencode
+          - hermes
+          - claude
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create branch
+        run: |
+          BRANCH="agent/${{ github.actor }}/$(date +%s)"
+          git checkout -b "$BRANCH"
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+      - name: Run agent
+        run: |
+          echo "Running agent: ${{ inputs.agent }}"
+          echo "Task: ${{ inputs.task }}"
+          echo "::notice title=Agent Task::${{ inputs.task }}"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ${{ env.BRANCH }}
+          title: "agent: ${{ inputs.task }}"
+          body: "Agent: ${{ inputs.agent }}\n\nTask: ${{ inputs.task }}"
+          commit-message: "agent: ${{ inputs.task }}"

@@ -1,8 +1,11 @@
 ---
 name: skill-crafter
-description: Automates the creation of new agentskills.io-compatible skills when repeated patterns are detected across sessions.
+description: Automates creation of new agentskills.io-compatible skills when repeated patterns are detected across sessions. Use when knowledge-harvest reports a pattern has appeared 3+ times.
 tags: [automation, skill-creation, meta]
 category: meta
+compatibility: 'Hermes Agent, Opencode'
+metadata:
+  version: '1.1.0'
 ---
 
 # skill-crafter
@@ -51,3 +54,9 @@ category: meta
 ## ブートストラップ完了時の注意
 
 全スキルのブートストラップが完了したら（＝ループエンジニアリングに必要な全スキルが出揃ったら）、この `skill-crafter` スキル自身を削除してもよい。これはブートストラッパーパターンに従い、自身の役割が不要になった段階でプロジェクトから除去することを意味する。
+
+## Gotchas
+
+- Only create skills for patterns that appear 3+ times
+- Directory name must match the name field in frontmatter
+- After all bootstrap skills are ready, this skill can self-destruct

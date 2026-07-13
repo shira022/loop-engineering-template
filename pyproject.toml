@@ -23,6 +23,23 @@ dev = [
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", "scripts/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if False:",
+]
+fail_under = 80
+
 [tool.bandit]
 exclude_dirs = ["tests", "venv", ".git", "node_modules"]
 skips = ["B101"]  # allow assert statements

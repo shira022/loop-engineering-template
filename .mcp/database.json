@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-sqlite",
+        "--db-path",
+        "${PROJECTS_DIR:-$HOME/project}/data.db"
+      ]
+    }
+  }
+}

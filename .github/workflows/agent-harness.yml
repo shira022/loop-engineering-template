@@ -1,5 +1,7 @@
 name: Agent Harness
 on:
+  pull_request:
+    branches: [main, develop, release/*, hotfix/*]
   workflow_dispatch:
     inputs:
       task:
@@ -105,3 +107,32 @@ jobs:
           echo "- **Task:** ${{ inputs.task }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch:** ${{ env.BRANCH }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Result:** PR created (or changes pushed)" >> $GITHUB_STEP_SUMMARY
+
+  compatibility-test:
+    name: Agent Compatibility (${{ matrix.agent }})
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        agent: [hermes, opencode, claude]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install pyyaml
+      - name: Validate skill frontmatter
+        run: python3 scripts/validate-skills.py
+      - name: Run eval harness
+        run: python3 scripts/run-evals.py
+      - name: Check .agents/skills structure
+        run: |
+          for skill in .agents/skills/*/; do
+            name=$(basename "$skill")
+            if [ -f "${skill}SKILL.md" ]; then echo "  ✅ $name/SKILL.md"; else echo "  ❌ $name/SKILL.md missing"; fi
+          done
+      - name: Summary
+        run: echo "## Agent Compatibility: ${{ matrix.agent }}" >> $GITHUB_STEP_SUMMARY

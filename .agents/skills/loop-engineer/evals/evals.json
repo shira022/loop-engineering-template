@@ -1,0 +1,1 @@
+{"skill_name":"loop-engineer","evals":[{"id":1,"prompt":"Start a new coding session for this project","expected_output":"Load learnings/ and docs/adr/ then set up session context","assertions":["Skill learns from learnings/ directory","Skill loads docs/adr/ directory","Skill initializes session context"]}]}

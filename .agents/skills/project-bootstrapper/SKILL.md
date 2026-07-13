@@ -3,7 +3,10 @@ name: project-bootstrapper
 version: 2.0.0
 category: management
 tags: [bootstrap, setup, initialization]
-description: このテンプレートから新規プロジェクトをブートストラップし、GitHubリポジトリ作成、クローン、言語初期化、レジストリ登録までを自動化します。
+description: Bootstraps new projects from this template - creates GitHub repo, clones locally, initializes language/framework, and registers in project registry. Use ONLY when creating a brand new project from the loop-engineering-template.
+compatibility: 'Hermes Agent (gh CLI required), Opencode'
+metadata:
+  version: '2.1.0'
 ---
 
 # Project Bootstrapper

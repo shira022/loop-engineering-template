@@ -103,12 +103,14 @@ GitHub リポジトリ設定で以下を有効にしてください：
 |--------|------|---------|
 | 直接push禁止 | ✅ | ✅ |
 | PR必須 | ✅ | ✅ |
-| 承認レビュー数 | 2 | 1 |
+| 承認レビュー数 | 2 (repo owner team members only) | 1 |
 | ステータスチェック必須 | ✅ (CI全件) | ✅ (CI全件) |
 | 会話の解決必須 | ✅ | ✅ |
 | 履歴の線形維持 | ✅ (Rebase merge) | ✅ (Squash merge) |
 | 期限切れレビューの却下 | ✅ | ✅ |
 | CODEOWNERS 必須 | ✅ | ❌ |
+
+> **Note:** Repo owners can bypass the 2-approver requirement and merge directly, but CI checks must still pass regardless of who merges.
 
 ### 🛡️ 必須 CI チェック
 

@@ -1,10 +1,12 @@
 ---
 name: session-reviewer
-description: セッション終了時に振り返りを行い、学び・改善点・アクションアイテムを抽出する。
+description: セッション終了時に振り返りを行い、学び・改善点・アクションアイテムを抽出する。Use at the end of every session to close the loop engineering cycle.
 version: 1.0.0
 tags: [review, retrospective, improvement]
 category: meta
+compatibility: 'Hermes Agent, Opencode'
 metadata:
+  version: '1.1.0'
   hermes:
     tags: [review, retrospective, improvement]
 ---
@@ -96,3 +98,10 @@ learnings/session-review-YYYY-MM-DD.md
 - 作成したレビューファイルへのパスを報告せよ
 - アクションアイテムが存在する場合、次回セッションに向けて要約を提示せよ
 - `learnings/` ディレクトリが存在しない場合は作成せよ
+
+## Gotchas
+
+- Run at END of session, not during
+- Always assign priority to action items (High/Medium/Low)
+- If knowledge-harvest was skipped, flag it but do NOT run it from within the reviewer
+- Archive old review files if learnings/ grows large

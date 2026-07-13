@@ -4,7 +4,9 @@ description: アーキテクチャ上の重要な決定をADR（Architecture Dec
 version: 1.0.0
 tags: [architecture, decision, documentation, adr]
 category: documentation
+compatibility: 'Hermes Agent, Opencode, Claude Code'
 metadata:
+  version: '1.1.0'
   hermes:
     tags: [architecture, decision, documentation, adr]
 ---
@@ -69,3 +71,10 @@ NNN-title-in-kebab-case.md
 ## 終了時
 
 - 今回作成・更新したADRの一覧を簡潔に報告せよ
+
+## Gotchas
+
+- ADR files are tracked in git; ensure accuracy
+- Status field must be one of: proposed, accepted, superseded, deprecated
+- When superseding an ADR, update old ADR status and add Superseded-By link
+- Do NOT record trivial decisions

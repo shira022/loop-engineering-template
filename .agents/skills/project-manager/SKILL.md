@@ -1,7 +1,8 @@
 ---
 name: project-manager
-version: 2.0.0
+version: 2.1.0
 category: management
+compatibility: 'Hermes Agent, Opencode'
 tags: [management, orchestration, worktree]
 description: 複数プロジェクトと git worktree を横断してタスクを管理・実行します。タスク実行、ステータス報告、キャンセル処理を統合的に行います。
 ---
@@ -222,3 +223,10 @@ git branch -D "$BRANCH" 2>/dev/null
 | `poll_interval_seconds` | 10 | 進捗監視のポーリング間隔 |
 | `agent_type` | opencode | 使用するエージェント（opencode / hermes） |
 | `log_dir` | /tmp | エージェントログの出力先 |
+
+## Gotchas
+
+- PROJECTS_DIR defaults to $HOME/project if not set; always check it exists
+- Worktree creation may fail if branch already exists; use unique timestamps
+- Agent processes run in background; monitor with poll_interval_seconds setting
+- PR creation may fail if gh CLI is not authenticated; report error clearly

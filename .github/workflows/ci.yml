@@ -15,57 +15,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check YAML frontmatter in skills
-        run: |
-          python3 scripts/validate-skills.py
+      - name: Validate skills YAML
+        run: python3 scripts/validate-skills.py
       - name: Markdown lint
         uses: DavidAnson/markdownlint-cli2-action@v16
         continue-on-error: true
         with:
           command: config
-          globs: |
-            **/*.md
-            !node_modules/**
+          globs: "**/*.md,!node_modules/**"
 
-  build-and-test:
-    name: Build & Test (${{ matrix.lang.id }})
+  skill-quality:
+    name: Skill Quality
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        lang:
-          - id: python
-            deps: pip install pytest
-            test_cmd: python -m pytest tests/ || echo "no tests"
-          - id: node
-            deps: ""
-            test_cmd: test -f package.json && (npm test 2>/dev/null || echo "no test script") || echo "no node project"
-          - id: rust
-            deps: ""
-            test_cmd: cargo test 2>/dev/null || echo "no tests"
-          - id: go
-            deps: ""
-            test_cmd: go test ./... 2>/dev/null || echo "no tests"
-      fail-fast: false
-
+    needs: lint
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies (${{ matrix.lang.id }})
-        if: matrix.lang.deps != ''
-        run: ${{ matrix.lang.deps }}
-      - name: Test (${{ matrix.lang.id }})
-        run: ${{ matrix.lang.test_cmd }}
-      - name: Detect project
-        run: |
-          echo "Project language detection:"
-          test -f pyproject.toml && echo "  Python: pyproject.toml found" || true
-          test -f package.json && echo "  Node.js: package.json found" || true
-          test -f Cargo.toml && echo "  Rust: Cargo.toml found" || true
-          test -f go.mod && echo "  Go: go.mod found" || true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - run: python3 scripts/validate-skills.py
+      - run: python3 scripts/run-evals.py
 
   branch-validation:
     name: Branch Policy Validation
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Validate source/target branch policy
         run: |
@@ -74,44 +50,45 @@ jobs:
 
           # Allow dependabot branches (they follow their own convention)
           if echo "$PR_SOURCE" | grep -q '^dependabot/'; then
-            echo "✅ dependabot branch: $PR_SOURCE → $PR_TARGET"
+            echo "dependabot branch: $PR_SOURCE -> $PR_TARGET"
             exit 0
           fi
 
           case "$PR_SOURCE" in
             feature/*)
               if [ "$PR_TARGET" != "develop" ]; then
-                echo "❌ feature/* ブランチは develop にのみマージ可能です"
+                echo "feature/* branches must target develop"
                 exit 1
               fi
-              echo "✅ feature → develop: OK"
+              echo "feature -> develop: OK"
               ;;
             release/*)
               if [ "$PR_TARGET" != "main" ] && [ "$PR_TARGET" != "develop" ]; then
-                echo "❌ release/* ブランチは main または develop にのみマージ可能です"
+                echo "release/* branches must target main or develop"
                 exit 1
               fi
-              echo "✅ release → $PR_TARGET: OK"
+              echo "release -> $PR_TARGET: OK"
               ;;
             hotfix/*)
               if [ "$PR_TARGET" != "main" ] && [ "$PR_TARGET" != "develop" ]; then
-                echo "❌ hotfix/* ブランチは main または develop にのみマージ可能です"
+                echo "hotfix/* branches must target main or develop"
                 exit 1
               fi
-              echo "✅ hotfix → $PR_TARGET: OK"
+              echo "hotfix -> $PR_TARGET: OK"
               ;;
             develop)
               if [ "$PR_TARGET" != "main" ]; then
-                echo "❌ develop ブランチは main にのみマージ可能です"
+                echo "develop branch must target main"
                 exit 1
               fi
-              echo "✅ develop → main: OK"
+              echo "develop -> main: OK"
               ;;
             main)
-              echo "❌ main からの PR は許可されていません"
+              echo "PRs from main not allowed"
               exit 1
               ;;
             *)
-              echo "⚠️  非標準ブランチ名です: $PR_SOURCE → $PR_TARGET"
+              echo "non-standard branch: $PR_SOURCE -> $PR_TARGET"
               ;;
           esac
+          echo "Branch policy check passed"

@@ -3,6 +3,8 @@ name: loop-engineer
 description: Core orchestrator for the loop engineering lifecycle — manages knowledge harvesting, skill crafting, and session review across every session.
 tags: [core, loop-engineering, automation]
 category: development
+compatibility: 'Hermes Agent, Opencode, Claude Code, Gemini CLI, Cursor, GitHub Copilot'
+version: '2.0.0'
 ---
 
 # loop-engineer
@@ -24,3 +26,9 @@ category: development
 
 - セッション終了前に `session-reviewer` を実行せよ。`session-reviewer` が存在しない場合（まだ作成されていない場合）はスキップしてよい。
 - 全てのカウンターをリセットせよ。
+
+## Gotchas
+
+- Do NOT run knowledge-harvest for trivial tasks (under 5 tool calls)
+- session-reviewer may not exist on first session; skip gracefully
+- AGENTS.md rules take precedence over skill instructions

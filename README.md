@@ -30,8 +30,6 @@
 │   └── project-manager/      # 複数プロジェクトのタスク管理
 ├── docs/adr/                 # Architecture Decision Records
 ├── learnings/                # セッションから抽出した学び・知見
-├── src/                      # サンプルコード
-├── tests/                    # サンプルテスト
 ├── scripts/                  # ユーティリティスクリプト
 ├── AGENTS.md                 # エージェント向けルール定義
 ├── CONTRIBUTING.md           # コントリビューションガイド
@@ -56,7 +54,7 @@ cd my-project
 
 | ワークフロー | トリガー | 説明 |
 |:---|:---|:---|
-| **CI** | push / PR | スキルバリデーション + マルチ言語テスト |
+| **CI** | push / PR | スキルバリデーション + 言語非依存テスト |
 | **Agent Harness** | 手動 (workflow_dispatch) | エージェント（Hermes/Opencode/Claude）によるタスク実行 |
 | **Release** | タグ `v*.*.*` プッシュ | GitHub Release 自動作成 |
 

@@ -1,0 +1,25 @@
+{
+  "name": "Loop Engineering Project",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "yzhang.markdown-all-in-one",
+        "DavidAnson.vscode-markdownlint",
+        "redhat.vscode-yaml",
+        "bierner.markdown-mermaid"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "markdownlint.run": "onSave",
+        "yaml.validate": true
+      }
+    }
+  },
+  "postCreateCommand": "pip install --upgrade pip && pip install yamllint pre-commit && pre-commit install",
+  "mounts": [
+    "source=${env:HOME}${env:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind"
+  ],
+  "remoteUser": "vscode"
+}

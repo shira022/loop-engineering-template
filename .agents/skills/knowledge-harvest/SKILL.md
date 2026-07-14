@@ -1,8 +1,15 @@
 ---
 name: knowledge-harvest
-description: Extracts structured learnings from completed complex tasks and persists them to the learnings/ directory for future sessions.
+description: Extracts structured learnings from completed complex tasks and persists them to the learnings/ directory for future sessions. Use after solving a non-trivial problem or debugging session to preserve reusable knowledge.
 tags: [learning, knowledge, documentation]
 category: development
+compatibility:
+  - 'Hermes Agent'
+  - 'Opencode'
+  - 'Claude Code'
+  - 'Gemini CLI'
+metadata:
+  version: '1.1.0'
 ---
 
 # knowledge-harvest
@@ -43,3 +50,9 @@ category: development
    ## Reusable for
    <再利用できる状況>
    ```
+
+## Gotchas
+
+- Only trigger for complex tasks (5+ tool calls)
+- Do not overwrite existing learnings files; always create new dated files
+- learnings/ files are tracked in git; avoid committing sensitive information

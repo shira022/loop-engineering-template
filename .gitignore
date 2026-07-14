@@ -11,3 +11,9 @@ build/
 *.log
 .DS_Store
 # learnings/*.md  ← ループエンジニアリングのため learnings は追跡対象
+# MCP local config (credentials)
+.mcp/*.local.json
+# Dev Container cache
+.devcontainer/.cache/
+# Agent execution traces
+traces/

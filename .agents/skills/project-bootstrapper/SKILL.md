@@ -1,17 +1,20 @@
 ---
 name: project-bootstrapper
-version: 2.0.0
+version: 3.0.0
 category: management
 tags: [bootstrap, setup, initialization]
-description: Bootstraps new projects from this template - creates GitHub repo, clones locally, initializes language/framework, and registers in project registry. Use ONLY when creating a brand new project from the loop-engineering-template.
+description: Bootstraps new projects from this template - creates GitHub repo, clones locally, guides language/framework setup through interactive dialog, and registers in project registry. Language-agnostic — supports any programming language or framework.
 compatibility: 'Hermes Agent (gh CLI required), Opencode'
 metadata:
-  version: '2.1.0'
+  version: "3.0.0"
 ---
 
 # Project Bootstrapper
 
 このスキルは loop-engineering-template から**新しいプロジェクト**をゼロから立ち上げます。
+プロセス（ループエンジニアリングの仕組み）はテンプレートから継承し、
+言語・フレームワーク固有の設定は対話型セットアップで動的に生成します。
+
 実行が完了すると、自分自身の SKILL.md を削除する**セルフデストラクト**機能を持ちます。
 
 ## 前提条件
@@ -21,7 +24,7 @@ metadata:
 
 ## 使用方法
 
-```bash
+```
 # エージェントに以下のように指示してください：
 # 「このテンプレートを使って新しいプロジェクトをブートストラップして」
 ```
@@ -36,12 +39,13 @@ metadata:
    - 命名規則: 小文字 + ハイフン区切りを推奨
 2. **リポジトリの公開設定**
    - `public` または `private` の選択
-3. **言語・フレームワークの詳細**
-   - 言語: Python / TypeScript / Rust / Go / その他
-   - フレームワーク: 該当するもの（例：Next.js, FastAPI, Actix など）
-   - テストフレームワーク: pytest / vitest / cargo-test / など
+3. **言語・フレームワークの詳細（自由選択）**
+   - 言語: 任意（Python / TypeScript / Rust / Go / Java / Kotlin / Swift / C# / その他）
+   - フレームワーク: 該当するもの（例：Next.js, FastAPI, Actix, Spring Boot, なし など）
+   - ビルドツール / パッケージマネージャ: （例：uv / npm / cargo / gradle / mix など）
+   - テストフレームワーク: （例：pytest / vitest / cargo-test / JUnit / など）
 4. **プロジェクトの説明 / 作りたいもの**
-   - 自由記述。後述のREADMEや初期コミットメッセージに反映します。
+   - 自由記述。READMEや初期コミットメッセージに反映します。
 
 ### Step 2: GitHub リポジトリ作成
 
@@ -71,29 +75,104 @@ git clone <clone-url> "$PROJECTS_DIR/<name>/repo-<name>"
 mkdir -p "$PROJECTS_DIR/<name>/worktrees/"
 ```
 
-### Step 4: 言語に応じたプロジェクト初期化
+### Step 4: プロジェクトの初期化（言語・フレームワークに応じて動的生成）
 
-選択された言語/フレームワークに基づき、以下の処理を実行します。
+テンプレートからループエンジニアリングのプロセス基盤（スキル群、AGENTS.md、
+Git Flow設定、CI設定など）は自動的に継承されます。
 
-#### Python
-- `src/` ディレクトリを作成し `__init__.py` を配置
-- `tests/` ディレクトリを作成し `__init__.py` と `conftest.py` を配置
-- `.github/workflows/ci.yml` に Python 用の CI 設定を記述（pytest + ruff）
+言語・フレームワーク固有の設定は、Step 1 で収集した情報に基づき
+**動的に生成**します。以下の手順を状況に応じて適用します：
 
-#### TypeScript
-- `src/` ディレクトリを作成
-- `tests/` ディレクトリを作成
-- `.github/workflows/ci.yml` に TypeScript 用の CI 設定を記述（vitest / jest + tsc）
+#### 4a. プロジェクト基本構成
 
-#### Rust
-- `src/` ディレクトリは `cargo init` で生成
-- `tests/` ディレクトリは `cargo test` の構成に合わせて配置
-- `.github/workflows/ci.yml` に Rust 用の CI 設定を記述（cargo build + cargo test + clippy）
+`src/` と `tests/` ディレクトリを作成します（内容は言語に応じて後続処理で生成）：
 
-#### Go
-- `src/` は Go のモジュール構成に合わせて `cmd/` と `internal/` を作成
-- `tests/` は `*_test.go` パターンに従う
-- `.github/workflows/ci.yml` に Go 用の CI 設定を記述（go build + go test + golangci-lint）
+```bash
+PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
+cd "$PROJECTS_DIR/<name>/repo-<name>"
+mkdir -p src tests
+```
+
+#### 4b. CI 設定の生成
+
+`.github/workflows/ci.yml` に、選択された言語・フレームワークに応じた
+`build-and-test` ジョブを追記します。
+
+**Python (pytest):**
+```yaml
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ".[dev]"
+      - run: python -m pytest tests/ --cov=src --cov-fail-under=80
+```
+
+**TypeScript (vitest):**
+```yaml
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm test
+```
+
+**Rust (cargo):**
+```yaml
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo build
+      - run: cargo test
+```
+
+**その他の言語:** ユーザーが指定したビルドツール・テストフレームワークに合わせて
+適切な CI ジョブを生成します。不明な場合はユーザーに確認します。
+
+#### 4c. プロジェクト初期化（必要な場合）
+
+言語ネイティブのプロジェクト初期化ツールがある場合は実行します：
+
+- **Python**: `uv init` / `poetry init`
+- **TypeScript**: `npm init` / `npm create vite@latest`
+- **Rust**: `cargo init`
+- **Go**: `go mod init`
+- **その他**: 該当する言語のツールを使用
+
+該当するツールがない場合やユーザーが手動初期化を希望する場合はスキップします。
+
+#### 4d. .gitignore の設定
+
+選択された言語に適した `.gitignore` テンプレートを
+GitHub のリポジトリから取得して設定します：
+
+```bash
+# 例: Python の場合
+curl -sL "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore" >> .gitignore
+```
+
+該当するテンプレートがない場合は、汎用的な `.gitignore` を設定します。
+
+#### 4e. 初期化確認
+
+```bash
+cd "$PROJECTS_DIR/<name>/repo-<name>"
+ls -la src/ tests/
+git status
+```
+
+生成された内容をユーザーに確認し、必要に応じて修正します。
 
 ### Step 5: 初期コミット & プッシュ
 
@@ -115,6 +194,8 @@ git push origin main
   visibility: <public|private>
   language: <language>
   framework: <framework>
+  build_tool: <build-tool>
+  test_framework: <test-framework>
   created_at: <YYYY-MM-DDTHH:MM:SS>
   description: <description>
 ```
@@ -140,10 +221,13 @@ rm "$PROJECTS_DIR/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.m
 ```
 ✅ プロジェクト <name> のブートストラップが完了しました。
    リポジトリ: <clone-url>
-   ローカル:  ${PROJECTS_DIR:-$HOME/project}/<name>/repo-<name>
-   言語:      <language>
-   可視性:    <public|private>
-   説明:      <description>
+   ローカル:   ${PROJECTS_DIR:-$HOME/project}/<name>/repo-<name>
+   言語:       <language>
+   フレームワーク: <framework>
+   ビルドツール:   <build-tool>
+   テストFW:       <test-framework>
+   可視性:     <public|private>
+   説明:       <description>
 
 プロジェクトのブートストラップスキルはセルフデストラクト済みです。
 ```
@@ -155,3 +239,5 @@ rm "$PROJECTS_DIR/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.m
 - プロジェクトのルートディレクトリは `${PROJECTS_DIR:-$HOME/project}/<name>/repo-<name>` です。`$PROJECTS_DIR` 環境変数で上書き可能です。
 - セルフデストラクトは新しいプロジェクト内のファイルのみ削除します。テンプレート本体には影響しません。
 - プロジェクト名が既に `repo-registry.yaml` に存在する場合は上書き確認を行います。
+- **言語・フレームワークは自由選択です。** このテンプレートは特定の言語に依存しません。
+  未サポートの言語の場合は、適宜ユーザーと相談しながら CI 設定を調整してください。

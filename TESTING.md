@@ -1,51 +1,35 @@
 # Testing Policy
 
-All projects from this template MUST have comprehensive test coverage.
+このテンプレートから作成されたプロジェクトは、言語・フレームワークを問わず
+包括的なテストカバレッジを持つ必要があります。
 
-## Principles
+## 原則
 
-1. **Tests are not optional.** Every feature must include tests.
-2. **Coverage minimum:** 80% line coverage (enforced in CI).
-3. **Test types required:**
-   - Unit tests for all modules
-   - Edge case / boundary tests
-   - Error path tests
-   - Integration tests where applicable
-4. **CI fails** if tests fail or coverage drops below threshold.
+1. **テストは必須です。** 全ての機能にテストを書いてください。
+2. **最低カバレッジ:** ラインカバレッジ80%以上（CIで強制）。
+3. **必須のテスト種別:**
+   - ユニットテスト — 全てのモジュール/関数
+   - エッジケース — 空入力、null/None、境界値
+   - エラーパス — 例外、エラーリターン、失敗状態
+   - 結合テスト — 外部サービス連携、DB操作（該当する場合）
+4. **CIはテスト失敗またはカバレッジ低下時に失敗します。**
 
-## Python
+## 言語・フレームワークの設定
 
-- Framework: pytest
-- Coverage: pytest-cov
-- Location: `tests/test_*.py`
-- Patterns: fixtures, parametrize, mocking (unittest.mock)
-- Run: `pytest tests/ --cov=src --cov-fail-under=80`
+このテンプレート自体は特定の言語やフレームワークに依存しません。
+プロジェクト作成時（`project-bootstrapper`）に選択した言語・フレームワークに応じて、
+テスト設定が動的に生成されます。
 
-## TypeScript / Node.js
+詳細はプロジェクト作成時の対話型セットアップを参照してください。
 
-- Framework: vitest (preferred) or jest
-- Coverage: vitest --coverage
-- Location: `tests/**/*.test.ts`
-- Run: `npm test`
+## CIでの強制
 
-## Rust
+CIパイプラインは以下の場合に失敗します:
+- テストが見つからない（exit code 1）
+- カバレッジが80%未満
+- テストが失敗する
 
-- Framework: built-in `#[test]`
-- Location: inline + `tests/`
-- Run: `cargo test`
+## 参照
 
-## Go
-
-- Framework: testing package
-- Coverage: go test -cover
-- Location: `*_test.go`
-- Run: `go test ./...`
-
-## CI Enforcement
-
-The CI `build-and-test` job:
-- Fails if no tests found (exit code 1)
-- Fails if coverage below 80%
-- Fails if any test fails
-
-See `tests/test_example.py` and `tests/ts/` for patterns.
+- `test-policy` スキル — エージェント向けテストポリシー
+- `.github/workflows/ci.yml` — CIのテスト設定（プロジェクト作成時に生成）

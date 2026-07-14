@@ -43,19 +43,52 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - run: |
-          SOURCE="${{ github.head_ref }}"
-          TARGET="${{ github.base_ref }}"
-          echo "Source: $SOURCE -> Target: $TARGET"
-          if echo "$SOURCE" | grep -q "^dependabot/"; then
-            echo "dependabot branch OK"; exit 0
+      - name: Validate source/target branch policy
+        run: |
+          PR_SOURCE="${{ github.head_ref }}"
+          PR_TARGET="${{ github.base_ref }}"
+
+          # Allow dependabot branches (they follow their own convention)
+          if echo "$PR_SOURCE" | grep -q '^dependabot/'; then
+            echo "dependabot branch: $PR_SOURCE -> $PR_TARGET"
+            exit 0
           fi
-          case "$SOURCE" in
-            feature/*)  [ "$TARGET" = "develop" ] || { echo "feature must target develop"; exit 1; } ;;
-            release/*)  [ "$TARGET" = "main" ] || [ "$TARGET" = "develop" ] || { echo "release must target main or develop"; exit 1; } ;;
-            hotfix/*)   [ "$TARGET" = "main" ] || [ "$TARGET" = "develop" ] || { echo "hotfix must target main or develop"; exit 1; } ;;
-            develop)    [ "$TARGET" = "main" ] || { echo "develop must target main"; exit 1; } ;;
-            main)       echo "PRs from main not allowed"; exit 1 ;;
-            *)          echo "non-standard branch: $SOURCE" ;;
+
+          case "$PR_SOURCE" in
+            feature/*)
+              if [ "$PR_TARGET" != "develop" ]; then
+                echo "feature/* branches must target develop"
+                exit 1
+              fi
+              echo "feature -> develop: OK"
+              ;;
+            release/*)
+              if [ "$PR_TARGET" != "main" ] && [ "$PR_TARGET" != "develop" ]; then
+                echo "release/* branches must target main or develop"
+                exit 1
+              fi
+              echo "release -> $PR_TARGET: OK"
+              ;;
+            hotfix/*)
+              if [ "$PR_TARGET" != "main" ] && [ "$PR_TARGET" != "develop" ]; then
+                echo "hotfix/* branches must target main or develop"
+                exit 1
+              fi
+              echo "hotfix -> $PR_TARGET: OK"
+              ;;
+            develop)
+              if [ "$PR_TARGET" != "main" ]; then
+                echo "develop branch must target main"
+                exit 1
+              fi
+              echo "develop -> main: OK"
+              ;;
+            main)
+              echo "PRs from main not allowed"
+              exit 1
+              ;;
+            *)
+              echo "non-standard branch: $PR_SOURCE -> $PR_TARGET"
+              ;;
           esac
           echo "Branch policy check passed"

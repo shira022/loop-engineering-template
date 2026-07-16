@@ -4,7 +4,7 @@ version: 3.0.0
 category: management
 tags: [bootstrap, setup, initialization, github]
 description: Bootstraps new projects from this template - creates GitHub repo, clones locally, guides language/framework setup through interactive dialog, and registers in project registry. Language-agnostic — supports any programming language or framework.
-compatibility: 'Hermes Agent (gh CLI required), Opencode, Claude Code'
+compatibility: 'Hermes Agent (gh CLI required), Opencode, Claude Code, Codex (OpenAI)'
 metadata:
   depends_on: [loop-engineer]
 ---
@@ -22,7 +22,7 @@ metadata:
 ## 前提条件
 
 - `gh` CLI がインストールされ、認証済みであること
-- 環境変数 `$PROJECTS_DIR` が未設定の場合、`$HOME/project` をデフォルトとして使用する
+- プロジェクトの配置先ディレクトリはユーザーへのヒアリングで決定する（`$PROJECTS_DIR` 環境変数がある場合はデフォルト候補として提示する）
 
 ## 使用方法
 
@@ -39,14 +39,18 @@ metadata:
 
 1. **プロジェクト名**（例：`my-awesome-app`）
    - 命名規則: 小文字 + ハイフン区切りを推奨
-2. **リポジトリの公開設定**
+2. **プロジェクトの配置ディレクトリ**（ローカルにクローンする親ディレクトリ）
+   - 例：`~/projects/` や `~/work/` など
+   - 環境変数 `$PROJECTS_DIR` が設定済みの場合はデフォルト値として提示する
+   - 未設定の場合はユーザーに明示的に尋ねる（`$HOME/project` を候補として提示可）
+3. **リポジトリの公開設定**
    - `public` または `private` の選択
-3. **言語・フレームワークの詳細（自由選択）**
+4. **言語・フレームワークの詳細（自由選択）**
    - 言語: 任意（Python / TypeScript / Rust / Go / Java / Kotlin / Swift / C# / その他）
    - フレームワーク: 該当するもの（例：Next.js, FastAPI, Actix, Spring Boot, なし など）
    - ビルドツール / パッケージマネージャ: （例：uv / npm / cargo / gradle / mix など）
    - テストフレームワーク: （例：pytest / vitest / cargo-test / JUnit / など）
-4. **プロジェクトの説明 / 作りたいもの**
+5. **プロジェクトの説明 / 作りたいもの**
    - 自由記述。READMEや初期コミットメッセージに反映します。
 
 ### Step 2: GitHub リポジトリ作成
@@ -62,19 +66,20 @@ gh repo create <project-name> --template <template-repo> --<public|private>
 
 ### Step 3: ローカルへのクローン
 
-以下のディレクトリ構成でクローン・セットアップを行います：
+Step 1 で確認した配置ディレクトリを `$PROJECT_DIR` として以下の構成でセットアップします：
 
 ```
-${PROJECTS_DIR:-$HOME/project}/<name>/
+${PROJECT_DIR}/<name>/
 ├── repo-<name>          # メインリポジトリ（クローン先）
 └── worktrees/           # git worktree 格納ディレクトリ
 ```
 
 ```bash
-PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
-mkdir -p "$PROJECTS_DIR/<name>"
-git clone <clone-url> "$PROJECTS_DIR/<name>/repo-<name>"
-mkdir -p "$PROJECTS_DIR/<name>/worktrees/"
+# ユーザーが指定したディレクトリを使用（Step 1 で確認済み）
+PROJECT_DIR="/path/to/projects"  # ← ユーザーの回答
+mkdir -p "$PROJECT_DIR/<name>"
+git clone <clone-url> "$PROJECT_DIR/<name>/repo-<name>"
+mkdir -p "$PROJECT_DIR/<name>/worktrees/"
 ```
 
 ### Step 4: プロジェクトの初期化（言語・フレームワークに応じて動的生成）
@@ -90,8 +95,7 @@ Git Flow設定、CI設定など）は自動的に継承されます。
 `src/` と `tests/` ディレクトリを作成します（内容は言語に応じて後続処理で生成）：
 
 ```bash
-PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
-cd "$PROJECTS_DIR/<name>/repo-<name>"
+cd "$PROJECT_DIR/<name>/repo-<name>"
 mkdir -p src tests
 ```
 
@@ -169,7 +173,7 @@ curl -sL "https://raw.githubusercontent.com/github/gitignore/main/Python.gitigno
 #### 4e. 初期化確認
 
 ```bash
-cd "$PROJECTS_DIR/<name>/repo-<name>"
+cd "$PROJECT_DIR/<name>/repo-<name>"
 ls -la src/ tests/
 git status
 ```
@@ -179,8 +183,7 @@ git status
 ### Step 5: 初期コミット & プッシュ
 
 ```bash
-PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
-cd "$PROJECTS_DIR/<name>/repo-<name>"
+cd "$PROJECT_DIR/<name>/repo-<name>"
 git add -A
 git commit -m "🎉 Initial commit: <project-name> - <description>"
 git push origin main
@@ -188,11 +191,11 @@ git push origin main
 
 ### Step 6: プロジェクトレジストリへの登録
 
-`${PROJECTS_DIR:-$HOME/project}/repo-registry.yaml` に以下のフォーマットでプロジェクト情報を追記します：
+`$PROJECT_DIR/repo-registry.yaml` に以下のフォーマットでプロジェクト情報を追記します：
 
 ```yaml
 - name: <project-name>
-  path: ${PROJECTS_DIR:-$HOME/project}/<name>/repo-<name>
+  path: $PROJECT_DIR/<name>/repo-<name>
   visibility: <public|private>
   language: <language>
   framework: <framework>
@@ -212,8 +215,7 @@ git push origin main
 （テンプレート側のファイルには影響しません。）
 
 ```bash
-PROJECTS_DIR="${PROJECTS_DIR:-$HOME/project}"
-rm "$PROJECTS_DIR/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.md"
+rm "$PROJECT_DIR/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.md"
 ```
 
 ### Step 8: 完了報告
@@ -223,7 +225,7 @@ rm "$PROJECTS_DIR/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.m
 ```
 ✅ プロジェクト <name> のブートストラップが完了しました。
    リポジトリ: <clone-url>
-   ローカル:   ${PROJECTS_DIR:-$HOME/project}/<name>/repo-<name>
+   ローカル:   $PROJECT_DIR/<name>/repo-<name>
    言語:       <language>
    フレームワーク: <framework>
    ビルドツール:   <build-tool>
@@ -238,7 +240,7 @@ rm "$PROJECTS_DIR/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.m
 
 - `gh` CLI がインストールされ、認証済みであることを前提とします。
 - テンプレートリポジトリは自動検出されますが、`gh repo view` で確認可能です。
-- プロジェクトのルートディレクトリは `${PROJECTS_DIR:-$HOME/project}/<name>/repo-<name>` です。`$PROJECTS_DIR` 環境変数で上書き可能です。
+- プロジェクトのルートディレクトリは `$PROJECT_DIR/<name>/repo-<name>` です。Step 1 でユーザーからヒアリングした `$PROJECT_DIR` に基づきます。
 - セルフデストラクトは新しいプロジェクト内のファイルのみ削除します。テンプレート本体には影響しません。
 - プロジェクト名が既に `repo-registry.yaml` に存在する場合は上書き確認を行います。
 - **言語・フレームワークは自由選択です。** このテンプレートは特定の言語に依存しません。
@@ -261,5 +263,6 @@ Automated scaffolding assumes defaults that may not match your intent. Review th
 |-------|-----------|
 | gh CLI not authenticated | Run `gh auth login` first |
 | Repo name already taken | Choose a different name or delete the existing repo |
+| Project directory invalid or unwritable | Ask user for a different path or create the directory |
 | Template not found | Verify the template URL is accessible |
 | git operation fails | Check network connectivity and permissions |

@@ -226,13 +226,14 @@ hermes cron create \
 
 1. **対話形式で以下をヒアリング**
    - プロジェクト名、リポジトリの公開/非公開設定
+   - **プロジェクトの配置ディレクトリ** — ローカルにクローンする場所（例：`~/projects/<name>/`）
    - 言語、フレームワーク、ビルドツール、テストフレームワーク
    - プロジェクトの説明
 2. **GitHubリポジトリ**をテンプレートから作成
-3. `$HOME/project/<name>/repo-<name>/` に**クローン**
+3. 指定されたディレクトリに `<dir>/<name>/repo-<name>/` 構成で**クローン**
 4. 言語固有の**CI設定・.gitignore・プロジェクトスケルトンを動的生成**
 5. すべてを**コミット＆プッシュ**
-6. `repo-registry.yaml` に**プロジェクトを登録**
+6. `repo-registry.yaml` に**プロジェクトを登録**（指定されたプロジェクトルートに配置）
 7. **セルフデストラクト**（一度きりの実行）
 
 > ⚠️ 初回ブートストラップセッションは約5K～15Kトークンを消費します。
@@ -316,6 +317,7 @@ hermes cron create \
 | **Hermes Agent** | ✅ 完全対応 | ネイティブ agentskills.io サポート |
 | **Opencode** | ✅ 完全対応 | `opencode --task` でスキル読込 |
 | **Claude Code** | ✅ 互換 | `.agents/skills/` を自動読込 |
+| **Codex (OpenAI)** | ✅ 互換 | `.agents/skills/` と `AGENTS.md` に対応 |
 | **Gemini CLI** | ✅ 互換 | agentskills.io 形式対応 |
 | **Cursor** | ✅ 互換 | `.cursorrules` 相当 |
 | **GitHub Copilot** | ✅ 互換 | `AGENTS.md` の指示を読込 |
@@ -344,6 +346,7 @@ hermes cron create \
 | **Hermes** | `hermes` | ネイティブ `.agents/skills/` 対応。サブエージェントは `delegate_task()`、スケジュールは `cronjob` を使用 |
 | **Opencode** | `opencode --task "..."` | サブエージェント（implementer/verifier）として最適。セットアップは `opencode --task "Bootstrap this project"` |
 | **Claude Code** | `claude` | `.agents/skills/` 自動読込。サブエージェントは `.claude/agents/` |
+| **Codex (OpenAI)** | `codex` | `.agents/skills/` 自動読込。スレッドごとに自動worktree分離 |
 | **Gemini CLI** | `gemini` | agentskills.io 形式ネイティブ対応 |
 | **Cursor** | Cursorでプロジェクトを開く | `.agents/skills/` 自動読込 |
 | **GitHub Copilot** | `github-copilot` | `AGENTS.md` をプロジェクトコンテキストとして読込 |

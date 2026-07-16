@@ -220,13 +220,14 @@ When you tell your agent *"Bootstrap this project"*, the `project-bootstrapper` 
 
 1. **Asks you interactively** for:
    - Project name, repo visibility (public/private)
+   - **Project directory** — where to clone locally (e.g. `~/projects/<name>/`)
    - Language, framework, build tool, test framework
    - Project description
 2. **Creates** the GitHub repository from the template
-3. **Clones** to `$HOME/project/<name>/repo-<name>/`
+3. **Clones** to your specified directory in `<dir>/<name>/repo-<name>/` layout
 4. **Generates** language-specific CI config, `.gitignore`, and project skeleton
 5. **Commits & pushes** everything
-6. **Registers** the project in `repo-registry.yaml`
+6. **Registers** the project in `repo-registry.yaml` (in your specified projects root)
 7. **Self-destructs** (so it only runs once)
 
 > ⚠️ Budget ~5K–15K tokens for the first bootstrap session.
@@ -310,6 +311,7 @@ This template uses the `.agents/skills/` format defined by [agentskills.io](http
 | **Hermes Agent** | ✅ Fully supported | Native agentskills.io support |
 | **Opencode** | ✅ Fully supported | Use `opencode --task` with skills loaded |
 | **Claude Code** | ✅ Compatible | Loads `.agents/skills/` automatically |
+| **Codex (OpenAI)** | ✅ Compatible | Supports `.agents/skills/` and `AGENTS.md` |
 | **Gemini CLI** | ✅ Compatible | agentskills.io format supported |
 | **Cursor** | ✅ Compatible | `.cursorrules` equivalent |
 | **GitHub Copilot** | ✅ Compatible | Reads `AGENTS.md` instructions |
@@ -338,6 +340,7 @@ This template uses the `.agents/skills/` format defined by [agentskills.io](http
 | **Hermes** | `hermes` | Native `.agents/skills/` support. Use `delegate_task()` for sub-agents, `cronjob` for schedules |
 | **Opencode** | `opencode --task "..."` | Best as sub-agent (implementer/verifier). Use `opencode --task "Bootstrap this project"` for setup |
 | **Claude Code** | `claude` | Automatic `.agents/skills/` loading. Sub-agents via `.claude/agents/` |
+| **Codex (OpenAI)** | `codex` | Native `.agents/skills/` loading. Built-in worktree isolation per thread |
 | **Gemini CLI** | `gemini` | agentskills.io format natively supported |
 | **Cursor** | Open project in Cursor | Reads `.agents/skills/` automatically |
 | **GitHub Copilot** | `github-copilot` | Reads `AGENTS.md` for project context |

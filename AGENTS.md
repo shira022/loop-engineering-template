@@ -19,6 +19,30 @@ This project implements **Loop Engineering** — an AI-agent-driven software dev
 - `.agents/skills/session-reviewer` — End-of-session retrospectives
 - `.agents/skills/project-bootstrapper` — Bootstrap new projects (first session only)
 - `.agents/skills/project-manager` — Cross-project task management
+- `.agents/skills/triage` — Scheduled CI triage and automation dispatch
+
+## The Loop Building Blocks
+
+This template implements the 6 building blocks of loop engineering:
+
+| Block | What It Does | Where |
+|-------|-------------|-------|
+| **Automations** | Scheduled execution — heartbeat of the loop | `.agents/config/schedules.yaml`, `agent-harness.yml` (schedule trigger) |
+| **Worktrees** | Isolated checkouts for parallel sub-agents | `project-manager` skill, `git worktree` |
+| **Skills** | Project knowledge codification | `.agents/skills/*/SKILL.md` (8 skills) |
+| **Connectors** | Real tool access via MCP | `.mcp/*.json` (GitHub, Linear, Slack, etc.) |
+| **Sub-agents** | Maker/checker split for quality | `.agents/agents/*.yaml` (explorer, implementer, verifier) |
+| **State** | Cross-session memory | `learnings/`, `docs/adr/`, `traces/` |
+
+For a full walkthrough of how these compose, see [docs/loop-patterns.md](docs/loop-patterns.md).
+
+## ⚠️ Loop Engineering Warnings
+
+Before running automated loops, understand these risks:
+
+1. **Verification is still on you** — A loop running unattended is also making mistakes unattended
+2. **Comprehension debt** — The faster the loop ships code, the bigger the gap between what exists and what you understand
+3. **Cognitive surrender** — When the loop runs itself, it's tempting to stop having an opinion
 
 ## Agent Compatibility
 
@@ -52,6 +76,24 @@ This `.agents/skills/` format follows the [agentskills.io](https://agentskills.i
 - `.agents/skills/session-reviewer` — セッション終了時の振り返り
 - `.agents/skills/project-bootstrapper` — 新規プロジェクト作成（初回のみ）
 - `.agents/skills/project-manager` — 複数プロジェクトのタスク管理
+- `.agents/skills/triage` — 定期CIトリアージと自動化ディスパッチ
+
+### ループ構成要素
+
+| 要素 | 役割 | 配置 |
+|------|------|------|
+| **Automations** | 定時実行（ループの心臓） | `.agents/config/schedules.yaml` |
+| **Worktrees** | 並列作業の分離 | `project-manager` スキル |
+| **Skills** | プロジェクト知識のコード化 | `.agents/skills/*/SKILL.md` |
+| **Connectors** | 外部ツール連携 (MCP) | `.mcp/*.json` |
+| **Sub-agents** | メーカー/チェッカー分離 | `.agents/agents/*.yaml` |
+| **State** | セッション間状態管理 | `learnings/`, `docs/adr/` |
+
+### ⚠️ Loop Engineering の警告
+
+1. **検証は依然としてあなたの責任** — 無人ループは無人で間違いも作る
+2. **理解債務（Comprehension debt）** — ループが早くコードを出せば出すほど、理解のギャップは拡大する
+3. **認知放棄（Cognitive surrender）** — ループに任せきりで判断力を失わないこと
 
 ### 対応エージェント
 

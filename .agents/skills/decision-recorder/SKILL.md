@@ -74,6 +74,17 @@ NNN-title-in-kebab-case.md
 
 - 今回作成・更新したADRの一覧を簡潔に報告せよ
 
+## ⚠️ Loop Safety
+
+### 1. Decision Debt
+Every ADR is a commitment. Recording too many trivial decisions creates noise that obscures truly important ones. Recording too few creates undocumented context that future sessions must re-derive.
+
+### 2. Token Cost
+Loading existing ADRs consumes context on every session start. Keep ADRs concise — prefer a clear decision/consequences paragraph over verbose context rehashing.
+
+### 3. Verification
+ADRs reflect the decision at a point in time. Revisit accepted ADRs periodically — they may be superseded by experience even if no formal superseding ADR exists.
+
 ## Gotchas
 
 - ADR files are tracked in git; ensure accuracy

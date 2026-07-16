@@ -57,9 +57,13 @@ graph LR
 ## ✨ Features
 
 ### 🧠 Agent-First Architecture
-- **8 built-in skills** — orchestrator, knowledge harvester, skill crafter, decision recorder, session reviewer, project bootstrapper, project manager, test policy
+- **9 built-in skills** — orchestrator, knowledge harvester, skill crafter, decision recorder, session reviewer, project bootstrapper, project manager, test policy, triage
 - **agentskills.io compatible** — works with every major AI coding agent
 - **Skill auto-creation** — repeated patterns are automatically detected and codified
+- **Provider-agnostic sub-agents** — explorer, implementer, verifier roles in neutral YAML format
+- **Automation-ready** — pre-configured schedules, triage skill, and /goal loop
+- **State spine** — STATE.md tracks what's tried, what passed, what's open across sessions
+- **Triage inbox** — items the loop can't handle get routed for human review
 
 ### 🔄 The Loop Cycle
 
@@ -70,6 +74,25 @@ graph LR
 | ⚡ **Improve** | `skill-crafter` | Auto-creates skills from 3× repeated patterns |
 | 📝 **Record** | `decision-recorder` | Captures architecture decisions as ADRs |
 | 🔍 **Review** | `session-reviewer` | Retrospectives with action items for next session |
+
+### 🤖 Sub-Agent System (Maker/Checker Split)
+- **3 generic roles** — explorer (read-only), implementer (writes code), verifier (reviews)
+- **Provider-agnostic YAML format** — works with Claude Code, Codex, Hermes, Opencode
+- **Different models** for different roles catches different mistake types
+- **No hard dependency** on any specific agent platform
+
+### ⏰ Automations
+- **Scheduled CI triage** — `agent-harness.yml` runs weekdays at 07:00 UTC
+- **Configurable schedules** — `.agents/config/schedules.yaml` defines daily/weekly/event-driven tasks
+- **Triage script** — `scripts/daily-triage.sh` analyzes CI, issues, and commits
+- **Manual dispatch** still available via `workflow_dispatch`
+
+### 🔌 Connectors (MCP)
+- **GitHub MCP** — create PRs, review issues, manage repos
+- **Linear MCP** — update tickets when PRs are created
+- **Slack MCP** — notify channels of triage results
+- **Filesystem MCP** — local file access for sub-agents
+- **Extensible** — add any MCP-compatible server
 
 ### 🏗️ Project Infrastructure
 - **Git Flow** — `main` / `develop` / `feature/*` / `release/*` / `hotfix/*`
@@ -128,20 +151,29 @@ curl -sL https://raw.githubusercontent.com/shira022/loop-engineering-template/ma
 │   ├── session-reviewer/     # End-of-session retrospectives
 │   ├── project-bootstrapper/ # Bootstrap new projects from this template
 │   ├── project-manager/      # Cross-project task management
-│   └── test-policy/          # Enforce comprehensive test coverage
+│   ├── test-policy/          # Enforce comprehensive test coverage
+│   └── triage/               # Scheduled CI triage & automation dispatch
+├── .agents/agents/           # Generic sub-agent definitions (explorer, implementer, verifier)
+├── .agents/config/           # Automation schedule and configuration files
 ├── .devcontainer/            # VS Code / Codespaces dev container
 ├── .github/workflows/        # CI / CodeQL / Dependabot / Agent Harness / Release
-├── .mcp/                     # Model Context Protocol configuration
+├── .mcp/                     # Model Context Protocol configuration (GitHub, Linear, Slack, SQLite)
 ├── docs/
 │   ├── adr/                  # Architecture Decision Records
 │   ├── eval-harness.md       # Skill evaluation framework docs
-│   └── architecture.md       # System architecture documentation
+│   ├── architecture.md       # System architecture documentation
+│   ├── loop-patterns.md      # "One Loop" complete workflow guide
+│   ├── quickstart-loop.md    # 15-minute start with triage + verifier
+│   ├── triage-inbox.md       # Triage inbox pattern documentation
+│   └── worktree-isolation.md # Worktree isolation for sub-agents
+├── inbox/                    # Triage inbox — items the loop can't handle
 ├── learnings/                # Session learnings and knowledge
-├── scripts/                  # Utility scripts (validate, eval, branch name)
+├── scripts/                  # Utility scripts (validate, eval, triage, goal-loop)
 ├── traces/                   # Agent execution traces
 ├── AGENTS.md                 # Agent-facing rules and conventions
 ├── CONTRIBUTING.md           # Contribution guidelines
 ├── Makefile                  # Task runner
+├── STATE.md                  # Loop state — the spine of the system
 ├── TESTING.md                # Testing policy
 └── SECURITY.md               # Security vulnerability reporting
 ```
@@ -157,6 +189,7 @@ curl -sL https://raw.githubusercontent.com/shira022/loop-engineering-template/ma
 | **skill-crafter** | Creates new skills when patterns repeat 3× | On pattern threshold |
 | **decision-recorder** | Writes ADRs for architectural decisions | On significant decisions |
 | **session-reviewer** | Conducts end-of-session retrospectives | Session end |
+| **triage** | Scheduled CI triage & automation dispatch | Daily schedule or manual |
 | **project-bootstrapper** | Scaffolds new projects from this template | First session only (self-destructs) |
 | **project-manager** | Manages tasks across multiple git worktrees | On task dispatch |
 | **test-policy** | Enforces 80%+ test coverage across all code | Every PR / commit |

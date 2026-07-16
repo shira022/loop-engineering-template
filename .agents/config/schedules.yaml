@@ -1,0 +1,100 @@
+# =============================================================================
+# Automation Schedule Definitions
+# =============================================================================
+# This file defines scheduled automation jobs for the loop engineering cycle.
+# Each entry describes WHAT runs, WHEN it runs, and WHAT happens with results.
+#
+# Provider-agnostic format — translate to your platform's scheduler:
+#   - GitHub Actions: .github/workflows/*.yml (cron)
+#   - Claude Code:   claude --schedule or cron + hooks
+#   - Codex:         Automations tab
+#   - Hermes:        cronjob tool
+#   - Linux:         systemd timers or crontab
+# =============================================================================
+
+schedules:
+
+  # ---------------------------------------------------------------------------
+  # Daily: CI Health Triage
+  # ---------------------------------------------------------------------------
+  - id: "daily-ci-triage"
+    name: "Daily CI Health Triage"
+    description: >
+      Every morning, review yesterday's CI failures, open issues, and recent
+      commits. Categorize findings by severity and write a triage report.
+    cadence: "0 7 * * 1-5"       # Weekdays at 07:00
+    agent: "triage"               # Calls .agents/skills/triage/SKILL.md
+    prompt: |
+      Run the daily triage workflow (see .agents/skills/triage/SKILL.md):
+      1. Check CI status from the latest runs on main/develop
+      2. Review open issues (especially new ones since yesterday)
+      3. Review recent commits (last 24h)
+      4. Categorize findings: critical / needs-attention / info
+      5. For fixable items: dispatch implementer + verifier sub-agents with worktree isolation
+      6. For unresolvable items: write to inbox/ for human review
+      7. Write triage report to learnings/triage-YYYY-MM-DD.md
+      8. Update STATE.md with current progress
+    delivery:
+      channel: "origin"
+      format: "summary"
+
+  # ---------------------------------------------------------------------------
+  # Weekly: Knowledge Compaction & Skill Health
+  # ---------------------------------------------------------------------------
+  - id: "weekly-skill-health"
+    name: "Weekly Skill Health Check"
+    description: >
+      Review the skills in .agents/skills/ for stale, outdated, or missing
+      instructions. Run evals and validation.
+    cadence: "0 9 * * 1"          # Mondays at 09:00
+    agent: "loop-engineer"
+    prompt: |
+      Run weekly skill maintenance:
+      1. Validate all skills with scripts/validate-skills.py
+      2. Run all evals with scripts/run-evals.py
+      3. Check learnings/ for 3+ repeated patterns → notify skill-crafter
+      4. Archive old traces/ files (older than 30 days)
+      5. Write health report to learnings/skill-health-YYYY-MM-DD.md
+    delivery:
+      format: "summary"
+
+  # ---------------------------------------------------------------------------
+  # Per-PR: Agent Review Gate (triggered, not scheduled)
+  # ---------------------------------------------------------------------------
+  - id: "pr-review-gate"
+    name: "PR Review Gate"
+    description: >
+      When a PR is opened, automatically run the agent review harness.
+    cadence: "on-pr"              # Event-driven, not time-based
+    agent: "verifier"
+    prompt: |
+      Review the changes in this PR:
+      1. Checkout the PR branch
+      2. Run all tests
+      3. Check test coverage (min 80%)
+      4. Scan for security issues
+      5. Verify code follows project conventions
+      6. Post review results as PR comment
+    delivery:
+      format: "full"
+
+  # ---------------------------------------------------------------------------
+  # Continuous: /goal pattern (run-until-done)
+  # ---------------------------------------------------------------------------
+  - id: "goal-pattern"
+    name: "/goal: Run-Until-Done Pattern"
+    description: >
+      Keep running until a verifiable stopping condition is true.
+      After each iteration, a separate verifier agent checks if done.
+    cadence: "continuous"         # Loop until condition met
+    agent: "goal-loop"
+    prompt: |
+      Goal: <describe what must be achieved>
+      Stop when: <verifiable condition, e.g. "all tests in test/auth pass and lint is clean">
+      Each iteration:
+      1. Read the goal and current state
+      2. Take the next logical step toward the goal
+      3. Run all tests
+      4. A separate verifier agent checks the stop condition
+      5. If stop condition met: report completion and exit
+      6. If not: continue to next iteration

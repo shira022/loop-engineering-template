@@ -20,6 +20,12 @@ validate: lint ## Validate all skills have required frontmatter
 	@echo "Validating skills..."
 	@python3 scripts/validate-skills.py
 
+validate-configs: ## Validate sub-agent, schedule, and MCP configs
+	@echo "Validating configs..."
+	@python3 scripts/validate-configs.py
+
+validate-all: validate validate-configs ## Run all validations
+
 test: ## Run project tests (language-agnostic)
 	@echo "Running tests using project's test runner..."
 	@if command -v pytest >/dev/null 2>&1 && [ -f pyproject.toml ]; then \

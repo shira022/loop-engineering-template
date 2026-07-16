@@ -1,61 +1,109 @@
-# Model Context Protocol (MCP) Configuration
+# MCP Connectors
 
-This directory contains MCP server configurations for connecting your agent
-to external tools and services.
+> *Model Context Protocol (MCP) servers give your agents real tool access — creating PRs, updating tickets, sending notifications.*
 
-## Available Configs
+This directory contains MCP server configuration files. Each `.json` file defines a connector that your agent can use to interact with external services.
 
-| File | Service | Purpose in the Loop |
-|------|---------|---------------------|
-| `filesystem.json` | Local file access | Read/write project files from sub-agents |
-| `github.json` | GitHub API | Create PRs, review issues, manage repos |
-| `sqlite.json` | SQLite database | Persistent state storage |
+## Available Connectors
+
+| File | Service | Purpose |
+|------|---------|---------|
+| `github.json` | GitHub | Create PRs, review issues, manage repos, list runs |
 | `linear.json` | Linear | Update tickets when PRs are created |
-| `slack.json` | Slack | Notify channels of triage results and PRs |
+| `slack.json` | Slack | Notify channels of triage results |
+| `database.json` | SQLite | Local database access for sub-agents |
+| `example-config.json` | — | Template with documentation comments |
+
+## Setup
+
+### Prerequisites
+
+Each connector needs authentication. The method varies by service.
+
+### GitHub MCP
+
+1. Create a [GitHub Personal Access Token](https://github.com/settings/tokens) (classic) with scope: `repo`, `workflow`
+2. Set the token as an environment variable:
+
+```bash
+export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxx"
+```
+
+3. The `github.json` config reads `GITHUB_TOKEN` from the environment:
+
+```json
+{
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-github"],
+  "env": {
+    "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+  }
+}
+```
+
+### Linear MCP
+
+1. Create a [Linear API key](https://linear.app/settings/api)
+2. Set the environment variable:
+
+```bash
+export LINEAR_API_KEY="lin_api_xxxxxxxxxxxxxxxxxxxx"
+```
+
+### Slack MCP
+
+1. Create a [Slack App](https://api.slack.com/apps) with `chat:write` and `channels:read` scopes
+2. Install the app to your workspace
+3. Set the bot token:
+
+```bash
+export SLACK_BOT_TOKEN="xoxb-xxxxxxxxxxxxxxxxxxxx"
+```
 
 ## Usage
 
-### How MCP Fits in the Loop
+Once configured, your agent can use the connectors automatically. Example agent prompts:
 
-MCP connectors let the loop **act** in your environment instead of telling you what it would do:
-
-| Phase | Connector | Action |
-|-------|-----------|--------|
-| Triage finds a bug | GitHub MCP | Opens an issue |
-| Implementer fixes it | Filesystem MCP | Reads/writes code in worktree |
-| Verifier approves | GitHub MCP | Creates PR |
-| PR is created | Linear MCP | Updates ticket status |
-| PR is ready | Slack MCP | Posts notification to channel |
-
-### Setup
-
-Each MCP server requires environment variables:
-
-```bash
-cp .mcp/example-config.json .mcp/local.json
+```
+"Create a PR from branch fix/auth to develop with title 'fix: auth token expiry'"
+"Update Linear ticket ENG-123 status to 'In Review'"
+"Post to #engineering channel: 'PR #42 is ready for review'"
 ```
 
-Set required environment variables:
+## Adding a New Connector
 
-```bash
-export GITHUB_TOKEN="ghp_..."
-export LINEAR_API_KEY="lin_api_..."
-export SLACK_BOT_TOKEN="xoxb-..."
-export SLACK_TEAM_ID="T..."
+1. Find the MCP server package (npm, pip, or binary)
+2. Create a new `.json` file in this directory:
+
+```json
+{
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-something"],
+  "env": {
+    "API_KEY": "${SOMETHING_API_KEY}"
+  }
+}
 ```
 
-### Provider Integration
+3. Document required environment variables in this README
+4. Add the config to `.gitignore` if it contains default credentials
 
-| Platform | How to load MCP configs |
-|----------|------------------------|
-| **Claude Code** | Reads `.mcp/*.json` automatically |
-| **Codex** | Reads `.mcp/*.json` automatically |
-| **Hermes** | Configured in `config.yaml` under `mcp_servers` |
-| **Opencode** | Configured in `.opencode/config.yaml` |
+## Testing
 
-## Security Notes
+```bash
+# Verify MCP config syntax
+python3 scripts/validate-configs.py
+```
 
-- **Never commit credentials** to the repository
-- Use `.mcp/*.local.json` for local overrides (gitignored)
-- Each MCP server runs with the permissions of its configured token
-- Review what each MCP server can access before adding it
+## ⚠️ Warnings
+
+1. **Credentials** — Never commit real tokens. Use environment variables or `.env` files.
+2. **Rate limits** — GitHub API has rate limits. Connectors that make many calls may hit them.
+3. **Cost** — Some MCP servers (e.g., Slack) are free. Others may have usage costs.
+4. **Security** — Connectors give agents real write access. Review what each connector can do.
+
+---
+
+## 🇯🇵 日本語
+
+MCPコネクタはエージェントに外部サービスへのアクセス権限を与えます。各 `.json` ファイルが一つのMCPサーバー設定を定義します。認証情報は環境変数で管理し、リポジトリにコミットしないでください。

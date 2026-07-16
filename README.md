@@ -1,79 +1,248 @@
-# Loop Engineering プロジェクトテンプレート
+<h1 align="center">🔄 Loop Engineering Template</h1>
 
-[![CI](https://github.com/shira022/loop-engineering-template/actions/workflows/ci.yml/badge.svg)](https://github.com/shira022/loop-engineering-template/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![agentskills.io](https://img.shields.io/badge/agentskills.io-compatible-blue)](https://agentskills.io)
+<p align="center">
+  <em>The AI-Agent-Driven Software Development Methodology</em>
+</p>
 
-## ループエンジニアリングとは
+<p align="center">
+  <a href="https://github.com/shira022/loop-engineering-template/actions/workflows/ci.yml">
+    <img src="https://github.com/shira022/loop-engineering-template/actions/workflows/ci.yml/badge.svg" alt="CI">
+  </a>
+  <a href="https://github.com/shira022/loop-engineering-template/actions/workflows/codeql.yml">
+    <img src="https://github.com/shira022/loop-engineering-template/actions/workflows/codeql.yml/badge.svg" alt="CodeQL">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
+  </a>
+  <a href="https://agentskills.io">
+    <img src="https://img.shields.io/badge/agentskills.io-compatible-blue" alt="agentskills.io">
+  </a>
+  <a href="https://github.com/shira022/loop-engineering-template/stargazers">
+    <img src="https://img.shields.io/github/stars/shira022/loop-engineering-template?style=social" alt="Stars">
+  </a>
+  <a href="https://github.com/shira022/loop-engineering-template/network/members">
+    <img src="https://img.shields.io/github/forks/shira022/loop-engineering-template?style=social" alt="Forks">
+  </a>
+</p>
 
-ループエンジニアリングは、AIエージェントを活用したソフトウェア開発手法です。
-**作業 → 学習 → 改善** のサイクルを繰り返すことで、エージェントのパフォーマンスが
-継続的に向上する仕組みを提供します。
+<p align="center">
+  <b>Hermes Agent</b> · 
+  <b>Opencode</b> · 
+  <b>Claude Code</b> · 
+  <b>Gemini CLI</b> · 
+  <b>Cursor</b> · 
+  <b>GitHub Copilot</b>
+</p>
 
-### コアサイクル
+---
 
-1. **Work** — 開発タスクを実行（コーディング、テスト、ドキュメント作成）
-2. **Learn** — 完了したタスクから構造化された知識を抽出
-3. **Improve** — 知識を再利用可能なスキルとして蓄積し、次回セッションに活用
+## 📖 Overview
 
-## ディレクトリ構造
+**Loop Engineering** is a methodology where AI agents follow a continuous **Work → Learn → Improve** cycle. With each session, the agent becomes more effective by persisting knowledge as reusable **skills**.
 
+This template gives you everything you need to start a new project with loop engineering built in — from the skill orchestration system to CI/CD, branching strategy, and security policies.
+
+```mermaid
+graph LR
+    A[🛠️ Work] --> B[📚 Learn]
+    B --> C[⚡ Improve]
+    C --> A
+    style A fill:#4a9eff,stroke:#333,color:#fff
+    style B fill:#50c878,stroke:#333,color:#fff
+    style C fill:#ff6b6b,stroke:#333,color:#fff
 ```
-.
-├── .agents/skills/           # agentskills.io 準拠のスキル定義
-│   ├── loop-engineer/        # ループエンジニアリング中核オーケストレーター
-│   ├── knowledge-harvest/    # タスク完了後の学び抽出
-│   ├── skill-crafter/        # 繰り返しパターンから自動スキル化
-│   ├── decision-recorder/    # Architecture Decision Records
-│   ├── session-reviewer/     # セッション終了時の振り返り
-│   ├── project-bootstrapper/ # 新規プロジェクト作成（初回のみ）
-│   └── project-manager/      # 複数プロジェクトのタスク管理
-├── docs/adr/                 # Architecture Decision Records
-├── learnings/                # セッションから抽出した学び・知見
-├── scripts/                  # ユーティリティスクリプト
-├── AGENTS.md                 # エージェント向けルール定義
-├── CONTRIBUTING.md           # コントリビューションガイド
-├── Makefile                  # タスクランナー
-└── .github/workflows/        # CI / Agent Harness / Release
-```
 
-## クイックスタート
+---
+
+## ✨ Features
+
+### 🧠 Agent-First Architecture
+- **8 built-in skills** — orchestrator, knowledge harvester, skill crafter, decision recorder, session reviewer, project bootstrapper, project manager, test policy
+- **agentskills.io compatible** — works with every major AI coding agent
+- **Skill auto-creation** — repeated patterns are automatically detected and codified
+
+### 🔄 The Loop Cycle
+
+| Phase | Skill | What Happens |
+|-------|-------|-------------|
+| 🛠️ **Work** | `loop-engineer` | Orchestrates the session, loads past context |
+| 📚 **Learn** | `knowledge-harvest` | Extracts structured knowledge from complex tasks |
+| ⚡ **Improve** | `skill-crafter` | Auto-creates skills from 3× repeated patterns |
+| 📝 **Record** | `decision-recorder` | Captures architecture decisions as ADRs |
+| 🔍 **Review** | `session-reviewer` | Retrospectives with action items for next session |
+
+### 🏗️ Project Infrastructure
+- **Git Flow** — `main` / `develop` / `feature/*` / `release/*` / `hotfix/*`
+- **CI/CD** — 5 GitHub Actions workflows (CI, CodeQL, Dependency Review, Agent Harness, Release)
+- **Security** — SECURITY.md with SLA, pre-commit hooks, CODEOWNERS, branch protection
+- **Dev Container** — ready-to-use VS Code / GitHub Codespaces setup
+- **MCP Support** — Model Context Protocol configuration for filesystem, GitHub, database
+
+### 🌐 Language Agnostic
+This template doesn't lock you into any language. The `project-bootstrapper` skill guides you through setup for:
+
+`Python` · `TypeScript` · `Rust` · `Go` · `Java` · `Kotlin` · `Swift` · `C#` · and more
+
+---
+
+## 🚀 Getting Started
+
+### Option 1: Use the template directly
 
 ```bash
-# テンプレートから新規プロジェクト作成
+# Create a new repository from this template
 gh repo create my-project --template shira022/loop-engineering-template --public
 git clone https://github.com/your-org/my-project.git
 cd my-project
 
-# 初回のみ project-bootstrapper を実行（対話型セットアップ）
-# エージェントに「このテンプレートを使って新しいプロジェクトを
-# ブートストラップして」と指示
+# Launch your AI agent and tell it:
+# "Bootstrap this project using the project-bootstrapper skill"
 ```
 
-## 組み込みワークフロー
+### Option 2: Quickstart script
 
-| ワークフロー | トリガー | 説明 |
-|:---|:---|:---|
-| **CI** | push / PR | スキルバリデーション + 言語非依存テスト |
-| **Agent Harness** | 手動 (workflow_dispatch) | エージェント（Hermes/Opencode/Claude）によるタスク実行 |
-| **Release** | タグ `v*.*.*` プッシュ | GitHub Release 自動作成 |
+```bash
+# Download and run the quickstart (coming soon)
+curl -sL https://raw.githubusercontent.com/shira022/loop-engineering-template/main/scripts/quickstart.sh | bash
+```
 
-## 対応エージェント
+### Prerequisites
 
-この `.agents/skills/` 形式は [agentskills.io](https://agentskills.io) 標準に準拠しており、
-以下のエージェントで利用可能です：
+| Tool | Required | Purpose |
+|------|----------|---------|
+| `git` | ✅ Yes | Version control |
+| `gh` CLI | ✅ Yes | GitHub repository creation |
+| AI Agent | ✅ Yes | Hermes, Opencode, Claude Code, or any agentskills.io-compatible agent |
 
-- Hermes Agent
-- Opencode
-- Claude Code
-- Gemini CLI
-- Cursor
-- GitHub Copilot
+---
 
-## コントリビューション
+## 📁 Directory Structure
 
-コントリビューションを歓迎します！[CONTRIBUTING.md](CONTRIBUTING.md) をご覧ください。
+```
+.
+├── .agents/skills/           # 8 agentskills.io-compatible skills
+│   ├── loop-engineer/        # Core session orchestrator
+│   ├── knowledge-harvest/    # Extract learnings from completed tasks
+│   ├── skill-crafter/        # Auto-create skills from repeated patterns
+│   ├── decision-recorder/    # Architecture Decision Records
+│   ├── session-reviewer/     # End-of-session retrospectives
+│   ├── project-bootstrapper/ # Bootstrap new projects from this template
+│   ├── project-manager/      # Cross-project task management
+│   └── test-policy/          # Enforce comprehensive test coverage
+├── .devcontainer/            # VS Code / Codespaces dev container
+├── .github/workflows/        # CI / CodeQL / Dependabot / Agent Harness / Release
+├── .mcp/                     # Model Context Protocol configuration
+├── docs/
+│   ├── adr/                  # Architecture Decision Records
+│   ├── eval-harness.md       # Skill evaluation framework docs
+│   └── architecture.md       # System architecture documentation
+├── learnings/                # Session learnings and knowledge
+├── scripts/                  # Utility scripts (validate, eval, branch name)
+├── traces/                   # Agent execution traces
+├── AGENTS.md                 # Agent-facing rules and conventions
+├── CONTRIBUTING.md           # Contribution guidelines
+├── Makefile                  # Task runner
+├── TESTING.md                # Testing policy
+└── SECURITY.md               # Security vulnerability reporting
+```
 
-## ライセンス
+---
 
-MIT
+## 🛠️ Built-in Skills
+
+| Skill | Description | Trigger |
+|-------|-------------|---------|
+| **loop-engineer** | Session orchestrator — loads context, coordinates skills, manages counters | Every session start |
+| **knowledge-harvest** | Extracts structured learnings to `learnings/` | After 5+ tool calls |
+| **skill-crafter** | Creates new skills when patterns repeat 3× | On pattern threshold |
+| **decision-recorder** | Writes ADRs for architectural decisions | On significant decisions |
+| **session-reviewer** | Conducts end-of-session retrospectives | Session end |
+| **project-bootstrapper** | Scaffolds new projects from this template | First session only (self-destructs) |
+| **project-manager** | Manages tasks across multiple git worktrees | On task dispatch |
+| **test-policy** | Enforces 80%+ test coverage across all code | Every PR / commit |
+
+---
+
+## 🤖 Agent Compatibility
+
+This template uses the `.agents/skills/` format defined by [agentskills.io](https://agentskills.io), making it compatible with:
+
+| Agent | Status | Notes |
+|-------|--------|-------|
+| **Hermes Agent** | ✅ Fully supported | Native agentskills.io support |
+| **Opencode** | ✅ Fully supported | Use `opencode --task` with skills loaded |
+| **Claude Code** | ✅ Compatible | Loads `.agents/skills/` automatically |
+| **Gemini CLI** | ✅ Compatible | agentskills.io format supported |
+| **Cursor** | ✅ Compatible | `.cursorrules` equivalent |
+| **GitHub Copilot** | ✅ Compatible | Reads `AGENTS.md` instructions |
+
+---
+
+## 📊 CI/CD Pipelines
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| **CI** | push + PR (protected branches) | Skill validation, lint, eval harness |
+| **CodeQL** | push + PR + weekly | Security vulnerability scanning |
+| **Dependency Review** | PR | Dependency vulnerability check |
+| **Agent Harness** | `workflow_dispatch` | Run agents in GitHub Actions |
+| **Release** | Tag `v*.*.*` | Automatic GitHub Release creation |
+| **Dependabot** | Weekly | Automated dependency updates |
+
+---
+
+## 📝 Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
+- Git Flow branch strategy
+- Branch naming conventions
+- PR requirements
+- Code style guidelines
+- Security vulnerability reporting
+
+### Quick Start for Contributors
+
+```bash
+# Clone and set up
+git clone https://github.com/shira022/loop-engineering-template.git
+cd loop-engineering-template
+make setup    # Install dev dependencies
+make lint     # Run lint checks
+make validate # Validate all skills
+```
+
+---
+
+## 🔒 Security
+
+See [SECURITY.md](SECURITY.md) for our security policy and vulnerability reporting process. Key points:
+
+- **Private disclosure**: Report vulnerabilities via GitHub Private Advisory
+- **Response SLA**: Critical within 24h, High within 48h
+- **Coordinated disclosure**: We fix before public disclosure
+
+---
+
+## 📄 License
+
+MIT © [shira022](https://github.com/shira022)
+
+---
+
+## 🌟 Support
+
+- ⭐ Star this repository if you find it useful
+- 🐛 [Report bugs](https://github.com/shira022/loop-engineering-template/issues/new?labels=bug&template=bug_report.md)
+- 💡 [Suggest features](https://github.com/shira022/loop-engineering-template/issues/new?labels=enhancement&template=feature_request.md)
+- 💬 [Start a discussion](https://github.com/shira022/loop-engineering-template/discussions)
+
+---
+
+## 🇯🇵 日本語
+
+Loop Engineering は、AIエージェントが **Work（作業）→ Learn（学習）→ Improve（改善）** のサイクルを繰り返すことで、セッションを重ねるごとにパフォーマンスが向上するソフトウェア開発手法です。
+
+このテンプレートは、Loop Engineering を実践するために必要な全スキル・CI/CD・セキュリティポリシー・ブランチ戦略をパッケージ化しています。
+
+詳細は [README.ja.md](README.ja.md) をご覧ください。

@@ -1,0 +1,26 @@
+{
+  "skill_name": "test-policy",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Enforce test policy on a new Python function that calculates fibonacci",
+      "expected_output": "Tests are created covering unit tests, edge cases (negative input, zero), and error paths",
+      "assertions": [
+        "Unit tests cover the function's core logic",
+        "Edge case tests include boundary values (0, 1, negative input)",
+        "Error path tests are included",
+        "Test coverage target of 80% is enforced"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review existing test coverage in a TypeScript project with Express.js",
+      "expected_output": "Assessment of current coverage and recommendations for improvement",
+      "assertions": [
+        "Language (TypeScript) and framework (Express.js) are correctly identified",
+        "Coverage assessment considers unit, edge case, and error path tests",
+        "CI configuration is evaluated for coverage enforcement"
+      ]
+    }
+  ]
+}

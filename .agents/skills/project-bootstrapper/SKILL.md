@@ -2,16 +2,18 @@
 name: project-bootstrapper
 version: 3.0.0
 category: management
-tags: [bootstrap, setup, initialization]
+tags: [bootstrap, setup, initialization, github]
 description: Bootstraps new projects from this template - creates GitHub repo, clones locally, guides language/framework setup through interactive dialog, and registers in project registry. Language-agnostic — supports any programming language or framework.
-compatibility: 'Hermes Agent (gh CLI required), Opencode'
+compatibility: 'Hermes Agent (gh CLI required), Opencode, Claude Code'
 metadata:
-  version: "3.0.0"
+  depends_on: [loop-engineer]
 ---
 
 # Project Bootstrapper
 
-このスキルは loop-engineering-template から**新しいプロジェクト**をゼロから立ち上げます。
+> **English:** Bootstraps a brand new project from the loop-engineering-template — creates GitHub repo, clones locally, configures language/framework, and registers in project registry.
+>
+> このスキルは loop-engineering-template から**新しいプロジェクト**をゼロから立ち上げます。
 プロセス（ループエンジニアリングの仕組み）はテンプレートから継承し、
 言語・フレームワーク固有の設定は対話型セットアップで動的に生成します。
 

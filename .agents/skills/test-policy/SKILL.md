@@ -90,6 +90,17 @@ CIパイプラインは以下の場合に失敗します:
 2. 対応するテスト設定を `project-bootstrapper` が生成した内容に従う
 3. ポリシー（80%カバレッジ、全テスト種別）を強制する
 
+## ⚠️ Loop Safety
+
+### 1. Test Debt
+90% coverage of the wrong tests is worse than 50% coverage of the right ones. Focus on meaningful tests — edge cases, error paths, integration — not on hitting a number.
+
+### 2. Token Cost
+Enforcing test policy consumes CI minutes and agent context. Each PR review may spend ~3000-8000 tokens analyzing coverage. Balance thoroughness with pragmatism.
+
+### 3. Verification
+Automated test enforcement catches coverage gaps but can't evaluate test quality. A test that never fails is not necessarily a good test. Human judgment on test meaningfulness is irreplaceable.
+
 ## 参照
 
 - `TESTING.md` — 完全なテストポリシー

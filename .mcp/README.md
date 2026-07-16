@@ -1,33 +1,61 @@
-# MCP (Model Context Protocol) 設定
+# Model Context Protocol (MCP) Configuration
 
-このディレクトリは MCP サーバー設定を管理します。
-MCP は AI エージェントが外部ツール（データベース、API、ファイルシステム）と安全に連携するための標準プロトコルです。
+This directory contains MCP server configurations for connecting your agent
+to external tools and services.
 
-## 対応エージェント
+## Available Configs
 
-- Hermes Agent (MCP対応)
-- Claude Code (MCP対応)
-- Gemini CLI (MCP対応)
+| File | Service | Purpose in the Loop |
+|------|---------|---------------------|
+| `filesystem.json` | Local file access | Read/write project files from sub-agents |
+| `github.json` | GitHub API | Create PRs, review issues, manage repos |
+| `sqlite.json` | SQLite database | Persistent state storage |
+| `linear.json` | Linear | Update tickets when PRs are created |
+| `slack.json` | Slack | Notify channels of triage results and PRs |
 
-## セットアップ
+## Usage
+
+### How MCP Fits in the Loop
+
+MCP connectors let the loop **act** in your environment instead of telling you what it would do:
+
+| Phase | Connector | Action |
+|-------|-----------|--------|
+| Triage finds a bug | GitHub MCP | Opens an issue |
+| Implementer fixes it | Filesystem MCP | Reads/writes code in worktree |
+| Verifier approves | GitHub MCP | Creates PR |
+| PR is created | Linear MCP | Updates ticket status |
+| PR is ready | Slack MCP | Posts notification to channel |
+
+### Setup
+
+Each MCP server requires environment variables:
 
 ```bash
-# Hermes Agent の場合
-hermes config set mcp.enabled true
-
-# Claude Code の場合
-claude mcp add ...
+cp .mcp/example-config.json .mcp/local.json
 ```
 
-## 利用可能なツール例
+Set required environment variables:
 
-| ツール | 説明 | デフォルト設定 |
-|--------|------|---------------|
-| Filesystem | ファイル読み書き操作 | 組み込み |
-| GitHub | リポジトリ管理・PR作成 | `.mcp/github.json` |
-| Database | SQLクエリ実行 | `.mcp/database.json` |
+```bash
+export GITHUB_TOKEN="ghp_..."
+export LINEAR_API_KEY="lin_api_..."
+export SLACK_BOT_TOKEN="xoxb-..."
+export SLACK_TEAM_ID="T..."
+```
 
-## 注意事項
+### Provider Integration
 
-- 認証情報を含む設定は `.mcp/*.local.json` に記述し、`.gitignore` に追加してください
-- MCP サーバーは必要に応じてエージェントが自動起動します
+| Platform | How to load MCP configs |
+|----------|------------------------|
+| **Claude Code** | Reads `.mcp/*.json` automatically |
+| **Codex** | Reads `.mcp/*.json` automatically |
+| **Hermes** | Configured in `config.yaml` under `mcp_servers` |
+| **Opencode** | Configured in `.opencode/config.yaml` |
+
+## Security Notes
+
+- **Never commit credentials** to the repository
+- Use `.mcp/*.local.json` for local overrides (gitignored)
+- Each MCP server runs with the permissions of its configured token
+- Review what each MCP server can access before adding it

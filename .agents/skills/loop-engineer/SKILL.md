@@ -58,6 +58,22 @@ The core orchestrator for the Loop Engineering lifecycle. Manages session start,
 
 > **English:** Create a trace file at session start recording session_id, started_at, and skills_loaded. During the session, increment the tool_calls counter. At session end, finalize with completed_at timestamp. Traces enable quantitative metrics via `scripts/analyze-traces.py`.
 
+## ⚠️ Loop Safety
+
+このスキルを使用する際は以下の警告を理解した上で実装せよ：
+
+### 1. Verification is Still On You
+Loop engineering automates execution, not accountability. A verifier sub-agent reduces mistakes but does NOT eliminate them. Always review generated output before considering it final. "Done" is a claim, not a proof.
+
+### 2. Comprehension Debt
+The faster the loop ships code you did not write, the bigger the gap between what exists and what you understand. Read the loop's output regularly — especially the learnings/, traces/, and generated code.
+
+### 3. Cognitive Surrender
+When the loop runs itself, it's tempting to stop having an opinion. Designing the loop is the cure when done with judgment, and the accelerant when done to avoid thinking. Stay engaged.
+
+### 4. Token Cost Awareness
+Each sub-agent call, knowledge-harvest run, and session review consumes tokens. Monitor your usage. This skill's typical cost: ~500-2000 tokens per invocation depending on context size.
+
 ## Gotchas
 
 - Do NOT run knowledge-harvest for trivial tasks (under 5 tool calls)

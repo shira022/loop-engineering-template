@@ -1,0 +1,26 @@
+{
+  "skill_name": "triage",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run the daily CI triage on this repository",
+      "expected_output": "Triage report in learnings/ with CI status, open issues, and categorized findings",
+      "assertions": [
+        "Output includes path under learnings/",
+        "Content contains CI status section",
+        "Content contains categorization (Critical / Needs-Attention / Info)",
+        "Content contains recommendations section"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "A CI failure was found that needs human architecture decision. Handle it.",
+      "expected_output": "Item routed to inbox/ for human review, not dispatched to sub-agent",
+      "assertions": [
+        "File is created under inbox/ directory",
+        "Inbox file contains context about why it can't be automated",
+        "STATE.md is updated with inbox item"
+      ]
+    }
+  ]
+}

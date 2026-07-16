@@ -1,0 +1,71 @@
+# =============================================================================
+# Generic Sub-Agent Definition Template
+# =============================================================================
+# This format is PROVIDER-AGNOSTIC — not tied to Claude Code, Codex, Hermes,
+# Opencode, or any specific agent platform. Each provider maps these fields
+# to its own native format at invocation time.
+#
+# See README.md in this directory for provider-specific mapping guides.
+# =============================================================================
+
+# --- REQUIRED: Agent identity ---
+name: "agent-name"                    # kebab-case unique identifier
+role: "explorer"                      # One of: explorer, implementer, verifier, custom
+version: "1.0.0"
+
+# --- REQUIRED: When to use this agent ---
+description: >
+  One paragraph describing what this agent does and when it should be spawned.
+
+# --- REQUIRED: Instructions that define agent behavior ---
+instructions: |
+  ## Mission
+  What this agent is responsible for achieving.
+
+  ## Rules
+  - Rule 1
+  - Rule 2
+
+  ## Process
+  1. Step one
+  2. Step two
+
+  ## Output expectations
+  What this agent must produce when done.
+
+# --- OPTIONAL: Tool access restrictions ---
+# Which tool categories this agent is allowed to use.
+# Omit = all tools available. Limit for security/speed.
+tools:
+  allowed: ["read", "search", "terminal", "web"]
+  denied: ["write", "deploy", "delete"]
+
+# --- OPTIONAL: Model suggestion (not a hard requirement) ---
+model_suggestion:
+  provider: ""
+  model: ""
+  reasoning_effort: ""
+  rationale: "Why this model is suggested for this role"
+
+# --- OPTIONAL: Resource hints ---
+resources:
+  estimated_tokens_per_run: 5000
+  timeout_minutes: 15
+
+# --- OPTIONAL: Provider-specific mappings ---
+provider_mappings:
+  claude_code:
+    file: ".claude/agents/{name}.md"
+    example: |
+      You are an {role} agent. {description}
+      Instructions: {instructions}
+  codex:
+    file: ".codex/agents/{name}.toml"
+    example: |
+      [agent]
+      name = "{name}"
+      description = "{description}"
+  hermes:
+    usage: "Invoke via delegate_task()"
+    example: |
+      delegate_task(goal="Act as {role}: {description}", context="""{instructions}""")

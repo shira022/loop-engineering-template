@@ -230,6 +230,20 @@ git branch -D "$BRANCH" 2>/dev/null
 | `agent_type` | opencode | 使用するエージェント（opencode / hermes） |
 | `log_dir` | /tmp | エージェントログの出力先 |
 
+## ⚠️ Loop Safety
+
+### 1. Worktree Proliferation
+Each worktree is a full checkout. Too many active worktrees consume disk space and make it easy to lose track of in-progress work. Clean up finished worktrees promptly (this skill does, but verify).
+
+### 2. Token Cost
+This skill spawns external agent processes. Each sub-agent invocation costs tokens on the provider side. Monitor token usage, especially with multiple concurrent worktrees.
+
+### 3. Verification
+Task outcomes are self-reported by the sub-agent. The verifier pattern in `.agents/agents/verifier.yaml` adds a review step. For critical tasks, ALWAYS use the maker/checker split — never skip verification.
+
+### 4. Cognitive Surrender
+Dispatching tasks to sub-agents is powerful but risks bypassing your own understanding. Review PRs created by dispatched tasks. Know what your agents are shipping.
+
 ## Gotchas
 
 - PROJECTS_DIR defaults to $HOME/project if not set; always check it exists

@@ -101,6 +101,20 @@ learnings/session-review-YYYY-MM-DD.md
 - アクションアイテムが存在する場合、次回セッションに向けて要約を提示せよ
 - `learnings/` ディレクトリが存在しない場合は作成せよ
 
+## ⚠️ Loop Safety
+
+### 1. Retrospective Honesty
+Session reviews are only as valuable as they are honest. Painting over problems to meet "improvements" quota is worse than no review. Focus on actionable, specific items.
+
+### 2. Token Cost
+This skill runs at session end. Typical cost: ~2000-4000 tokens. The review file it produces adds context to future sessions. Make it count — prefer quality over length.
+
+### 3. Review Debt
+Skipping session review consistently creates a blind spot. Patterns that should have been caught accumulate. If you skip reviews, ensure you have an alternative feedback mechanism.
+
+### 4. Verification
+Review findings are self-reported by the agent. They may miss critical gaps. Human judgment on action items is essential.
+
 ## Trace Finalization
 
 At the end of review, finalize the session trace file:

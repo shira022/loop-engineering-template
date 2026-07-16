@@ -56,11 +56,21 @@ metadata:
    <再利用できる状況>
    ```
 
+## ⚠️ Loop Safety
+
+### 1. Verification
+Knowledge harvesting is documentation, not validation. Harvested learnings may contain inaccuracies from the originating session. Verify critical technical claims before relying on them.
+
+### 2. Token Cost
+This skill runs after every complex task. Typical cost: ~1000-3000 tokens. Running it after trivial tasks wastes tokens — respect the 5-tool-call threshold.
+
+### 3. Knowledge Debt
+Skipping knowledge-harvest to save tokens today creates context gaps tomorrow. Balance: harvest meaningful patterns, skip obvious one-offs.
+
 ## Gotchas
 
 - Update the active trace file's `files_created` array when saving learnings
 - Set the `source` field in learning frontmatter to enable traceability
-
 - Only trigger for complex tasks (5+ tool calls)
 - Do not overwrite existing learnings files; always create new dated files
 - learnings/ files are tracked in git; avoid committing sensitive information

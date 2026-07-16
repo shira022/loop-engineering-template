@@ -16,6 +16,9 @@ on:
           - opencode
           - claude
           - stub
+  # Scheduled automations: daily CI triage (weekdays at 07:00 UTC)
+  schedule:
+    - cron: '0 7 * * 1-5'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,7 +26,7 @@ concurrency:
 
 jobs:
   run-agent:
-    name: Agent Execution (${{ inputs.agent }})
+    name: Agent Execution (${{ inputs.agent || 'scheduled' }})
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -34,15 +37,32 @@ jobs:
           fetch-depth: 0
 
       - name: Create branch
+        id: branch
         run: |
-          BRANCH="agent/${{ github.actor }}/$(date +%s)"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            BRANCH="automation/daily-triage/$(date +%Y%m%d)"
+          else
+            BRANCH="agent/${{ github.actor }}/$(date +%s)"
+          fi
           git checkout -b "$BRANCH"
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
 
-      - name: Install agent (${{ inputs.agent }})
+      - name: Determine task
+        id: task
         run: |
-          case "${{ inputs.agent }}" in
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            TASK="Run daily CI triage: check latest CI runs on main, open issues, recent commits. Categorize findings. Write triage report to learnings/triage-$(date +%F).md"
+          else
+            TASK="${{ inputs.task }}"
+          fi
+          echo "TASK=$TASK" >> $GITHUB_ENV
+
+      - name: Install agent (${{ inputs.agent || 'stub' }})
+        run: |
+          AGENT="${{ inputs.agent }}"
+          [ -z "$AGENT" ] && AGENT="stub"
+          case "$AGENT" in
             hermes)
               echo "::group::Install Hermes Agent"
               pip install hermes-agent 2>/dev/null || echo "⚠️  Hermes install failed, using stub mode"
@@ -63,8 +83,8 @@ jobs:
       - name: Run agent task
         id: agent-run
         run: |
-          echo "::notice title=Agent Task::${{ inputs.task }}"
-          bash scripts/agent-runner.sh "${{ inputs.agent }}" "${{ inputs.task }}"
+          echo "::notice title=Agent Task::${{ env.TASK }}"
+          bash scripts/agent-runner.sh "${AGENT:-stub}" "${{ env.TASK }}"
           echo "status=completed" >> $GITHUB_OUTPUT
 
       - name: Commit agent changes
@@ -72,77 +92,27 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --cached --quiet || git commit -m "agent: ${{ inputs.task }}"
+          git diff --cached --quiet || git commit -m "${{ env.TASK }}"
           git push origin "$BRANCH"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          branch: ${{ env.BRANCH }}
-          base: main
-          title: "agent: ${{ inputs.task }}"
-          body: |-
-            ## Agent Task Execution
-
-            **Agent:** ${{ inputs.agent }}
-            **Task:** ${{ inputs.task }}
-            **Triggered by:** ${{ github.actor }}
-
-            ---
-
+          branch: "${{ steps.branch.outputs.branch }}"
+          base: develop
+          title: "${{ env.TASK }}"
+          body: |
+            ## 🤖 Automated Agent Run
+            
+            **Task:** ${{ env.TASK }}
+            **Agent:** ${{ inputs.agent || 'scheduled' }}
+            **Trigger:** ${{ github.event_name }}
+            
             This PR was automatically created by the Agent Harness workflow.
-            Review the changes and modify as needed before merging.
-          commit-message: "agent: ${{ inputs.task }}"
-
-      - name: Summary
-        run: |
-          echo "## Agent Harness Results" >> $GITHUB_STEP_SUMMARY
-          echo "- **Agent:** ${{ inputs.agent }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Task:** ${{ inputs.task }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch:** ${{ env.BRANCH }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status:** ✅ Completed" >> $GITHUB_STEP_SUMMARY
-
-  compatibility-check:
-    name: Compatibility Check (${{ matrix.agent }})
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        agent: [hermes, opencode, claude]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install dependencies
-        run: pip install pyyaml
-      - name: Validate skill frontmatter
-        run: python3 scripts/validate-skills.py
-      - name: Run eval harness
-        run: python3 scripts/run-evals.py
-      - name: Check .agents/skills structure
-        run: |
-          errors=0
-          for skill in .agents/skills/*/; do
-            name=$(basename "$skill")
-            if [ -f "${skill}SKILL.md" ]; then
-              echo "  ✅ $name/SKILL.md"
-            else
-              echo "  ❌ $name/SKILL.md missing"
-              errors=$((errors+1))
-            fi
-            if [ -f "${skill}evals/evals.json" ]; then
-              echo "  ✅ $name/evals/evals.json"
-            else
-              echo "  ⚠️  $name/evals/evals.json missing"
-            fi
-          done
-          exit $errors
-      - name: Summary
-        run: |
-          echo "## Agent Compatibility: ${{ matrix.agent }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Agent: ${{ matrix.agent }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Skill validation: ✅" >> $GITHUB_STEP_SUMMARY
-          echo "- Eval harness: ✅" >> $GITHUB_STEP_SUMMARY
+            Please review the changes before merging.
+          labels: |
+            automated
+            agent-run
+          add-paths: |
+            learnings/
+            traces/

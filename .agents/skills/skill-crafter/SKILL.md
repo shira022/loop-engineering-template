@@ -58,6 +58,17 @@ metadata:
 
 全スキルのブートストラップが完了したら（＝ループエンジニアリングに必要な全スキルが出揃ったら）、この `skill-crafter` スキル自身を削除してもよい。これはブートストラッパーパターンに従い、自身の役割が不要になった段階でプロジェクトから除去することを意味する。
 
+## ⚠️ Loop Safety
+
+### 1. Premature Abstraction
+Creating a skill from 3 occurrences of a pattern is the threshold, not a mandate. Consider: is this pattern stable? Will it repeat? A skill for a pattern that never appears again is dead weight.
+
+### 2. Token Cost
+Creating a skill consumes ~2000-5000 tokens for analysis + generation. Each skill also adds ~200-1000 tokens to every future session's context load. More skills ≠ better. Be selective.
+
+### 3. Skill Debt
+Skills that are created but never maintained become liabilities — they contain stale instructions that mislead agents. Prefer updating existing skills over creating new ones.
+
 ## Gotchas
 
 - Only create skills for patterns that appear 3+ times

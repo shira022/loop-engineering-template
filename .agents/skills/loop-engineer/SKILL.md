@@ -5,9 +5,18 @@ tags: [core, loop-engineering, automation]
 category: development
 compatibility: 'Hermes Agent, Opencode, Claude Code, Gemini CLI, Cursor, GitHub Copilot'
 version: '2.0.0'
+metadata:
+  version: '2.0.0'
+  depends_on: [knowledge-harvest, skill-crafter, session-reviewer]
+  hermes:
+    tags: [core, loop-engineering, automation]
 ---
 
 # loop-engineer
+
+The core orchestrator for the Loop Engineering lifecycle. Manages session start, in-session execution, and session teardown by coordinating all other skills.
+
+ループエンジニアリングサイクルの統括オーケストレーター。セッションの開始・実行・終了を管理し、全スキルを連携させる。
 
 このスキルは、セッション全体を通じてループエンジニアリングサイクルを統括する。
 
@@ -26,6 +35,28 @@ version: '2.0.0'
 
 - セッション終了前に `session-reviewer` を実行せよ。`session-reviewer` が存在しない場合（まだ作成されていない場合）はスキップしてよい。
 - 全てのカウンターをリセットせよ。
+
+## 実行トレース
+
+セッションの開始時に `traces/` ディレクトリに実行トレースファイルを作成せよ：
+
+```json
+{
+  "session_id": "<unique-id>",
+  "started_at": "<ISO-8601>",
+  "skills_loaded": ["loop-engineer", ...],
+  "tool_calls": 0,
+  "tokens_used": 0,
+  "files_created": [],
+  "files_modified": []
+}
+```
+
+セッション中はツールコール数をトレースファイルに記録し、終了時に `session-reviewer` がファイナライズする。
+
+## Trace Management
+
+> **English:** Create a trace file at session start recording session_id, started_at, and skills_loaded. During the session, increment the tool_calls counter. At session end, finalize with completed_at timestamp. Traces enable quantitative metrics via `scripts/analyze-traces.py`.
 
 ## Gotchas
 

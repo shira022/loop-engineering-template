@@ -3,14 +3,17 @@ name: skill-crafter
 description: Automates creation of new agentskills.io-compatible skills when repeated patterns are detected across sessions. Use when knowledge-harvest reports a pattern has appeared 3+ times.
 tags: [automation, skill-creation, meta]
 category: meta
-compatibility: 'Hermes Agent, Opencode'
+compatibility: 'Hermes Agent, Opencode, Claude Code, Gemini CLI'
 metadata:
   version: '1.1.0'
+  depends_on: [loop-engineer, knowledge-harvest]
 ---
 
 # skill-crafter
 
-このスキルは、繰り返し出現するパターンから新しい `.agents/skills/<name>/SKILL.md` を作成する。
+> **English:** Creates new agentskills.io-compatible `.agents/skills/<name>/SKILL.md` files from patterns that appear 3+ times across sessions.
+>
+> このスキルは、繰り返し出現するパターンから新しい `.agents/skills/<name>/SKILL.md` を作成する。
 
 ## トリガー条件
 

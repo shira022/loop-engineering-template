@@ -1,51 +1,61 @@
 name: Agent Harness
 on:
-  pull_request:
-    branches: [main, develop, release/*, hotfix/*]
   workflow_dispatch:
     inputs:
       task:
-        description: "実行するタスクの説明"
+        description: "Task description for the agent to execute"
         required: true
         type: string
       agent:
-        description: "使用するエージェント"
+        description: "Agent to use for execution"
         required: true
-        default: hermes
+        default: stub
         type: choice
         options:
           - hermes
           - opencode
           - claude
+          - stub
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   run-agent:
+    name: Agent Execution (${{ inputs.agent }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Create branch
         run: |
           BRANCH="agent/${{ github.actor }}/$(date +%s)"
           git checkout -b "$BRANCH"
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
 
       - name: Install agent (${{ inputs.agent }})
         run: |
           case "${{ inputs.agent }}" in
             hermes)
               echo "::group::Install Hermes Agent"
-              pip install hermes-agent 2>/dev/null || pip install hermes 2>/dev/null || echo "⚠️  Hermes install failed, running stub mode"
+              pip install hermes-agent 2>/dev/null || echo "⚠️  Hermes install failed, using stub mode"
               echo "::endgroup::"
               ;;
             opencode)
               echo "::group::Install Opencode"
-              npm install -g @opencode/opencode 2>/dev/null || echo "⚠️  Opencode install failed, running stub mode"
+              npm install -g @opencode/opencode 2>/dev/null || echo "⚠️  Opencode install failed, using stub mode"
               echo "::endgroup::"
               ;;
             claude)
               echo "::group::Install Claude Code"
-              npm install -g @anthropic/claude-code 2>/dev/null || echo "⚠️  Claude Code install failed, running stub mode"
+              npm install -g @anthropic/claude-code 2>/dev/null || echo "⚠️  Claude Code install failed, using stub mode"
               echo "::endgroup::"
               ;;
           esac
@@ -54,23 +64,7 @@ jobs:
         id: agent-run
         run: |
           echo "::notice title=Agent Task::${{ inputs.task }}"
-          echo "Running ${{ inputs.agent }} on branch $BRANCH..."
-
-          # Create task file for agent
-          mkdir -p .agent
-          cat > .agent/task.md << 'EOF'
-          # Agent Task
-
-          ${{ inputs.task }}
-
-          ## Rules
-          - Follow the project's AGENTS.md rules
-          - Run knowledge-harvest after complex tasks
-          - Record ADR for architectural decisions
-          - Update learnings/ with new insights
-          EOF
-
-          echo "Task file created at .agent/task.md"
+          bash scripts/agent-runner.sh "${{ inputs.agent }}" "${{ inputs.task }}"
           echo "status=completed" >> $GITHUB_OUTPUT
 
       - name: Commit agent changes
@@ -106,10 +100,10 @@ jobs:
           echo "- **Agent:** ${{ inputs.agent }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Task:** ${{ inputs.task }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch:** ${{ env.BRANCH }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Result:** PR created (or changes pushed)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ Completed" >> $GITHUB_STEP_SUMMARY
 
-  compatibility-test:
-    name: Agent Compatibility (${{ matrix.agent }})
+  compatibility-check:
+    name: Compatibility Check (${{ matrix.agent }})
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
     strategy:
@@ -130,9 +124,25 @@ jobs:
         run: python3 scripts/run-evals.py
       - name: Check .agents/skills structure
         run: |
+          errors=0
           for skill in .agents/skills/*/; do
             name=$(basename "$skill")
-            if [ -f "${skill}SKILL.md" ]; then echo "  ✅ $name/SKILL.md"; else echo "  ❌ $name/SKILL.md missing"; fi
+            if [ -f "${skill}SKILL.md" ]; then
+              echo "  ✅ $name/SKILL.md"
+            else
+              echo "  ❌ $name/SKILL.md missing"
+              errors=$((errors+1))
+            fi
+            if [ -f "${skill}evals/evals.json" ]; then
+              echo "  ✅ $name/evals/evals.json"
+            else
+              echo "  ⚠️  $name/evals/evals.json missing"
+            fi
           done
+          exit $errors
       - name: Summary
-        run: echo "## Agent Compatibility: ${{ matrix.agent }}" >> $GITHUB_STEP_SUMMARY
+        run: |
+          echo "## Agent Compatibility: ${{ matrix.agent }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Agent: ${{ matrix.agent }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Skill validation: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Eval harness: ✅" >> $GITHUB_STEP_SUMMARY

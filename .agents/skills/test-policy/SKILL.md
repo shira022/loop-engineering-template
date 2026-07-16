@@ -9,13 +9,16 @@ description: >
   programming language or framework chosen for the project.
 metadata:
   version: "2.0.0"
+  depends_on: [project-bootstrapper]
 ---
 
 # Test Policy
 
 ## 役割
 
-このスキルは新規コードが必ずテストされることを保証します。
+> **English:** Ensures all new code has comprehensive test coverage (unit, edge case, error path, integration) with a minimum 80% line coverage enforced by CI.
+>
+> このスキルは新規コードが必ずテストされることを保証します。
 全てのプロジェクトはこのポリシーに従う必要があります。
 このポリシーは特定の言語やフレームワークに依存しません。
 

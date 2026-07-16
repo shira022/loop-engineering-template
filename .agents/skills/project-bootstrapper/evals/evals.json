@@ -1,0 +1,27 @@
+{
+  "skill_name": "project-bootstrapper",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Bootstrap a new Python project called my-awesome-app with public visibility",
+      "expected_output": "GitHub repo created, project cloned, language-specific setup completed, and registered in repo-registry.yaml",
+      "assertions": [
+        "gh repo create command is executed with template and visibility flags",
+        "Local clone is created under $PROJECTS_DIR",
+        "Python-specific setup (src/, tests/ directories) is created",
+        "Project is registered in repo-registry.yaml",
+        "Self-destruct of bootstrapper SKILL.md is completed"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Bootstrap a TypeScript Next.js project called web-dashboard",
+      "expected_output": "GitHub repo created, project cloned, Next.js CI configuration generated",
+      "assertions": [
+        "gh repo create is called with correct project name",
+        "CI workflow includes Node.js setup and npm test",
+        "Project structure includes src/ and tests/ directories"
+      ]
+    }
+  ]
+}

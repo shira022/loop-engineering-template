@@ -1,19 +1,21 @@
 ---
 name: session-reviewer
 description: セッション終了時に振り返りを行い、学び・改善点・アクションアイテムを抽出する。Use at the end of every session to close the loop engineering cycle.
-version: 1.0.0
+version: 1.1.0
 tags: [review, retrospective, improvement]
 category: meta
-compatibility: 'Hermes Agent, Opencode'
+compatibility: 'Hermes Agent, Opencode, Claude Code, Gemini CLI'
 metadata:
-  version: '1.1.0'
+  depends_on: [loop-engineer, knowledge-harvest]
   hermes:
     tags: [review, retrospective, improvement]
 ---
 
 # session-reviewer
 
-セッション終了時にトリガーされ、そのセッションの振り返りを実施する。
+> **English:** Triggered at session end to conduct a retrospective, extracting accomplishments, learnings, improvements, and action items.
+>
+> セッション終了時にトリガーされ、そのセッションの振り返りを実施する。
 
 ## 開始時
 
@@ -98,6 +100,16 @@ learnings/session-review-YYYY-MM-DD.md
 - 作成したレビューファイルへのパスを報告せよ
 - アクションアイテムが存在する場合、次回セッションに向けて要約を提示せよ
 - `learnings/` ディレクトリが存在しない場合は作成せよ
+
+## Trace Finalization
+
+At the end of review, finalize the session trace file:
+
+1. Set `completed_at` to current timestamp
+2. Update `files_created` and `files_modified` with any new entries
+3. Save the final trace to `traces/` directory
+
+This enables quantitative analysis via `scripts/analyze-traces.py`.
 
 ## Gotchas
 

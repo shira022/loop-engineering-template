@@ -1,35 +1,76 @@
 # Testing Policy
 
-このテンプレートから作成されたプロジェクトは、言語・フレームワークを問わず
-包括的なテストカバレッジを持つ必要があります。
+All projects created from this template must have comprehensive test coverage, regardless of language or framework.
 
-## 原則
+## Principles
 
-1. **テストは必須です。** 全ての機能にテストを書いてください。
-2. **最低カバレッジ:** ラインカバレッジ80%以上（CIで強制）。
-3. **必須のテスト種別:**
-   - ユニットテスト — 全てのモジュール/関数
-   - エッジケース — 空入力、null/None、境界値
-   - エラーパス — 例外、エラーリターン、失敗状態
-   - 結合テスト — 外部サービス連携、DB操作（該当する場合）
-4. **CIはテスト失敗またはカバレッジ低下時に失敗します。**
+1. **Tests are mandatory.** Every feature must have tests.
+2. **Minimum coverage:** 80% line coverage (enforced by CI).
+3. **Required test types:**
+   - Unit tests — every module/function
+   - Edge cases — empty input, null/None, boundary values
+   - Error paths — exceptions, error returns, failure states
+   - Integration tests — external services, database operations (if applicable)
+4. **CI fails** when tests fail or coverage drops below threshold.
 
-## 言語・フレームワークの設定
+## Language-Specific Configuration
 
-このテンプレート自体は特定の言語やフレームワークに依存しません。
-プロジェクト作成時（`project-bootstrapper`）に選択した言語・フレームワークに応じて、
-テスト設定が動的に生成されます。
+This template itself is language-agnostic. When you bootstrap a project using `project-bootstrapper`, the test configuration is dynamically generated based on your language/framework choice.
 
-詳細はプロジェクト作成時の対話型セットアップを参照してください。
+### Python (pytest)
+```ini
+# pyproject.toml
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
 
-## CIでの強制
+# CI coverage threshold
+[tool.coverage.run]
+source = ["src"]
 
-CIパイプラインは以下の場合に失敗します:
-- テストが見つからない（exit code 1）
-- カバレッジが80%未満
-- テストが失敗する
+[tool.coverage.report]
+fail_under = 80
+```
 
-## 参照
+### TypeScript (vitest)
+```ts
+// vitest.config.ts
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json'],
+      lines: 80,
+    },
+  },
+});
+```
 
-- `test-policy` スキル — エージェント向けテストポリシー
-- `.github/workflows/ci.yml` — CIのテスト設定（プロジェクト作成時に生成）
+### Rust (cargo-tarpaulin)
+```toml
+# In CI: cargo tarpaulin --out Xml --exclude-files tests/
+```
+
+### Go
+```bash
+# In CI: go test -coverprofile=coverage.out -covermode=count ./...
+```
+
+## CI Enforcement
+
+The CI pipeline fails when:
+- No tests are found
+- Coverage is below 80%
+- Tests fail
+
+## References
+
+- `test-policy` skill — agent-enforced test policy
+- `project-bootstrapper` — generates CI config during project setup
+- `.github/workflows/ci.yml` — CI configuration (generated per project)
+
+---
+
+## 🇯🇵 日本語
+
+このテンプレートから作成されたプロジェクトは、言語・フレームワークを問わず包括的なテストカバレッジを持つ必要があります。原則: テスト必須、カバレッジ80%以上、ユニット/エッジケース/エラーパス/結合テストの4種必須。

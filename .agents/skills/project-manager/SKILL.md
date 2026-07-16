@@ -2,14 +2,20 @@
 name: project-manager
 version: 2.1.0
 category: management
-compatibility: 'Hermes Agent, Opencode'
+compatibility: 'Hermes Agent, Opencode, Claude Code'
 tags: [management, orchestration, worktree]
-description: 複数プロジェクトと git worktree を横断してタスクを管理・実行します。タスク実行、ステータス報告、キャンセル処理を統合的に行います。
+description: Manages tasks across multiple projects using git worktree. Executes tasks, monitors progress, reports status, and creates PRs on completion. Supports Hermes and Opencode backends.
+metadata:
+  depends_on: [project-bootstrapper]
+  hermes:
+    tags: [management, orchestration, worktree]
 ---
 
 # Project Manager
 
-このスキルは、プロジェクトレジストリと git worktree を活用して、複数プロジェクトにまたがるタスクの実行・監視・キャンセルを統合管理します。
+> **English:** Manages task execution, monitoring, and cancellation across multiple projects using git worktree and the project registry.
+>
+> このスキルは、プロジェクトレジストリと git worktree を活用して、複数プロジェクトにまたがるタスクの実行・監視・キャンセルを統合管理します。
 
 ## 前提条件
 

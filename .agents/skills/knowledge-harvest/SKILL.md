@@ -8,13 +8,18 @@ compatibility:
   - 'Opencode'
   - 'Claude Code'
   - 'Gemini CLI'
+  - 'Cursor'
+  - 'GitHub Copilot'
 metadata:
   version: '1.1.0'
+  depends_on: [loop-engineer, skill-crafter]
 ---
 
 # knowledge-harvest
 
-このスキルは、完了した複雑なタスクから学びを抽出し、`learnings/` に保存する。
+> **English:** Extracts structured learnings from completed complex tasks and persists them to `learnings/` for future sessions.
+>
+> このスキルは、完了した複雑なタスクから学びを抽出し、`learnings/` に保存する。
 
 ## トリガー条件
 
@@ -52,6 +57,9 @@ metadata:
    ```
 
 ## Gotchas
+
+- Update the active trace file's `files_created` array when saving learnings
+- Set the `source` field in learning frontmatter to enable traceability
 
 - Only trigger for complex tasks (5+ tool calls)
 - Do not overwrite existing learnings files; always create new dated files

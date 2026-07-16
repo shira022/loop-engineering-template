@@ -1,19 +1,21 @@
 ---
 name: decision-recorder
 description: アーキテクチャ上の重要な決定をADR（Architecture Decision Record）として記録・管理する。
-version: 1.0.0
+version: 1.1.0
 tags: [architecture, decision, documentation, adr]
 category: documentation
-compatibility: 'Hermes Agent, Opencode, Claude Code'
+compatibility: 'Hermes Agent, Opencode, Claude Code, Gemini CLI, Cursor, GitHub Copilot'
 metadata:
-  version: '1.1.0'
+  depends_on: [loop-engineer]
   hermes:
     tags: [architecture, decision, documentation, adr]
 ---
 
 # decision-recorder
 
-アーキテクチャ上の重要な決定が行われた際に、ADR（Architecture Decision Record）を作成・更新する。
+> **English:** Creates and updates Architecture Decision Records (ADRs) when important architectural decisions are made.
+>
+> アーキテクチャ上の重要な決定が行われた際に、ADR（Architecture Decision Record）を作成・更新する。
 
 ## 開始時
 

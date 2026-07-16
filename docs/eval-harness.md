@@ -1,18 +1,17 @@
-# Eval Harness
+# Skill Evaluation Harness
 
-このプロジェクトは agentskills.io の評価フレームワークに対応しています。
-各スキルに `evals/evals.json` が配置されており、スキルの品質を自動検証できます。
+This project supports the [agentskills.io](https://agentskills.io) evaluation framework. Each skill has an `evals/evals.json` file that defines automated test cases for validating skill quality.
 
-## 構成
+## Structure
 
 ```
 .agents/skills/<skill-name>/
 ├── SKILL.md
 └── evals/
-    └── evals.json        # テストケース定義
+    └── evals.json        # Test case definitions
 ```
 
-## テストケースの構造
+## Test Case Format
 
 ```json
 {
@@ -20,39 +19,57 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "ユーザー入力を模したプロンプト",
-      "expected_output": "期待される出力の説明",
-      "files": ["evals/files/sample.csv"],
+      "prompt": "Simulated user prompt for the skill",
+      "expected_output": "Description of expected output",
       "assertions": [
-        "検証可能な表明1",
-        "検証可能な表明2"
+        "Verifiable assertion 1",
+        "Verifiable assertion 2"
       ]
     }
   ]
 }
 ```
 
-## ローカル実行
+## Running Locally
 
 ```bash
-# 全スキルの評価を実行
+# Run all skill evaluations
 python3 scripts/run-evals.py
 
-# 特定スキルのみ
+# Run a specific skill
 python3 scripts/run-evals.py --skill knowledge-harvest
 ```
 
-## CI での実行
+## CI Integration
 
-`.github/workflows/ci.yml` で全スキルの評価が自動実行されます。
-評価に失敗した場合は CI が失敗します。
+The `.github/workflows/ci.yml` workflow automatically runs all skill evaluations on every push and PR. Failed evaluations cause the CI to fail.
 
-## アサーションの書き方
+## Writing Good Assertions
 
-良いアサーション:
-- `"Output file is valid JSON"` — プログラムで検証可能
-- `"Report includes at least 3 recommendations"` — 計測可能
+### Good assertions:
+- `"Output path starts with docs/adr/"` — programmatically verifiable
+- `"Content contains heading for status"` — measurable
+- `"Skill learns from learnings/ directory"` — testable behavior
 
-弱いアサーション:
-- `"Output is good"` — 曖昧すぎる
-- `"Output uses exactly 'Total: $X'"` — 脆すぎる
+### Weak assertions:
+- `"Output is good"` — too vague
+- `"Output uses exactly 'Total: $X'"` — too brittle
+
+## Current Evaluation Coverage
+
+| Skill | Evals | Status |
+|-------|-------|--------|
+| loop-engineer | 1 | ✅ |
+| knowledge-harvest | 1 | ✅ |
+| decision-recorder | 1 | ✅ |
+| session-reviewer | 1 | ✅ |
+| skill-crafter | 2 | ✅ |
+| project-bootstrapper | 2 | ✅ |
+| project-manager | 2 | ✅ |
+| test-policy | 2 | ✅ |
+
+---
+
+## 🇯🇵 日本語
+
+各スキルに `evals/evals.json` が配置されており、スキルの品質を自動検証できます。`scripts/run-evals.py` でローカル実行、CIで自動検証。

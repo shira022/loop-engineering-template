@@ -1,0 +1,25 @@
+{
+  "skill_name": "skill-crafter",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The knowledge-harvest skill reports that 'Docker container setup' pattern has appeared 3 times. Create a skill for it.",
+      "expected_output": "New SKILL.md created in .agents/skills/docker-setup/ with name, description, tags, category, and execution steps",
+      "assertions": [
+        "New skill directory is created under .agents/skills/",
+        "SKILL.md contains valid YAML frontmatter with name, description, tags, category",
+        "Skill name is in kebab-case",
+        "Execution steps are concrete and actionable"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Create a skill from a pattern that appeared exactly once",
+      "expected_output": "Notification that the pattern must appear 3+ times before creating a skill",
+      "assertions": [
+        "Pattern frequency check is performed against learnings/",
+        "Skill creation is refused with explanation of 3+ threshold"
+      ]
+    }
+  ]
+}

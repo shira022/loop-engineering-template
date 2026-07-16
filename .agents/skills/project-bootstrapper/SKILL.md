@@ -242,4 +242,24 @@ rm "$PROJECTS_DIR/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.m
 - セルフデストラクトは新しいプロジェクト内のファイルのみ削除します。テンプレート本体には影響しません。
 - プロジェクト名が既に `repo-registry.yaml` に存在する場合は上書き確認を行います。
 - **言語・フレームワークは自由選択です。** このテンプレートは特定の言語に依存しません。
-  未サポートの言語の場合は、適宜ユーザーと相談しながら CI 設定を調整してください。
+  - **未サポートの言語の場合は、適宜ユーザーと相談しながら CI 設定を調整してください。
+
+## ⚠️ Loop Safety
+
+### 1. Bootstrapping ≠ One-Shot
+The bootstrapper is designed for first-session use only. Running it multiple times creates duplicate configurations and registry entries. If a re-bootstrap is needed, manually clean `repo-registry.yaml` first.
+
+### 2. Token Cost
+This is the most expensive skill in the template (~5000-15000 tokens for a full run). Plan for this cost in the first session.
+
+### 3. Verification
+Automated scaffolding assumes defaults that may not match your intent. Review the generated setup before committing. The skill's self-destruct removes itself but does NOT validate the generated project.
+
+## Error Handling
+
+| Error | Resolution |
+|-------|-----------|
+| gh CLI not authenticated | Run `gh auth login` first |
+| Repo name already taken | Choose a different name or delete the existing repo |
+| Template not found | Verify the template URL is accessible |
+| git operation fails | Check network connectivity and permissions |

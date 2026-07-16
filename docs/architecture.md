@@ -2,7 +2,38 @@
 
 ## System Overview
 
-Loop Engineering implements a **procedural memory** system for AI agents. Instead of starting each session from scratch, agents progressively build a reusable knowledge base of skills, learnings, and decisions.
+Loop Engineering implements a **procedural memory** system for AI agents. Instead of starting each session from scratch, agents progressively build a reusable knowledge base of skills, learnings, and decisions. The system is built on **6 core building blocks** that compose into autonomous loops.
+
+## The 6 Building Blocks
+
+| Block | Role | Location |
+|-------|------|----------|
+| **Automations** | Scheduled execution — the heartbeat of the loop | `.agents/config/schedules.yaml`, `.github/workflows/agent-harness.yml` |
+| **Worktrees** | Isolated environments for parallel sub-agents | `project-manager` skill, `git worktree` |
+| **Skills** | Codified project knowledge and conventions | `.agents/skills/*/SKILL.md` |
+| **Connectors** | Real tool access via MCP servers | `.mcp/*.json` |
+| **Sub-agents** | Maker/checker split for quality | `.agents/agents/*.yaml` |
+| **State** | Cross-session memory of what's done and next | `learnings/`, `docs/adr/`, `traces/` |
+
+```mermaid
+graph TD
+    subgraph "The Loop"
+        A[Automations<br/>Schedule] --> B[Triage<br/>Discover & Prioritize]
+        B --> C[Sub-agents<br/>Maker/Checker Split]
+        C --> D[Worktrees<br/>Isolated Execution]
+        D --> E[Connectors<br/>PR + Ticket + Notify]
+        E --> F[State<br/>learnings/ + traces/]
+        F --> A
+    end
+    
+    subgraph "Foundation"
+        S[Skills<br/>.agents/skills/]
+        C -->|reads| S
+        F -->|persists| S
+    end
+```
+
+## Session Lifecycle
 
 ```mermaid
 graph TD

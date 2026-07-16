@@ -48,6 +48,29 @@ setup: ## Install development dependencies
 # Git Flow helpers
 # ---------------------------------------------------------------------------
 
+docs: ## Serve documentation locally (if mkdocs is configured)
+	@echo "Opening docs..."
+	@if command -v python3 >/dev/null 2>&1; then \
+		python3 -m http.server 8000 --bind 127.0.0.1 2>/dev/null & \
+		echo "📖 Docs available at http://127.0.0.1:8000"; \
+	else \
+		echo "⚠️  python3 not found"; \
+	fi
+
+tracelog: ## Analyze agent execution traces
+	@if [ -d traces ] && ls traces/*.json 2>/dev/null >/dev/null; then \
+		python3 scripts/analyze-traces.py 2>/dev/null || echo "⚠️  analyze-traces.py not found or no traces"; \
+	else \
+		echo "ℹ️  No trace files found in traces/"; \
+	fi
+
+changelog: ## Show unreleased changes from CHANGELOG
+	@if [ -f CHANGELOG.md ]; then \
+		sed -n '/^## \[Unreleased\]/,/^## \[/p' CHANGELOG.md | head -n -1; \
+	else \
+		echo "⚠️  CHANGELOG.md not found"; \
+	fi
+
 git-flow-init: ## Initialize Git Flow in this repository
 	@if ! git flow init -d 2>/dev/null; then \
 		echo "git-flow not installed. Using defaults:"; \

@@ -1,0 +1,27 @@
+{
+  "skill_name": "project-manager",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run a task to add authentication to my-app project",
+      "expected_output": "Git worktree created, agent launched, progress monitored, PR created on completion",
+      "assertions": [
+        "Worktree is created under $PROJECTS_DIR/<name>/worktrees/",
+        "Agent process is launched with task description",
+        "Progress is polled at configured interval",
+        "PR is created on task completion",
+        "Worktree is cleaned up after PR creation"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Show status of all projects",
+      "expected_output": "Table of active worktrees, agent processes, and their status",
+      "assertions": [
+        "All registered projects from repo-registry.yaml are listed",
+        "Active worktrees are shown with branch names",
+        "Agent process status (running/completed/error) is displayed"
+      ]
+    }
+  ]
+}

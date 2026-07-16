@@ -1,8 +1,24 @@
 # Testing Policy
 
-All projects created from this template must have comprehensive test coverage, regardless of language or framework.
+> *This policy covers **two scopes**: (1) this template repository itself, and (2) projects created from this template.*
 
-## Principles
+## Scope 1: Template Repository
+
+The template itself is language-agnostic. Its "tests" validate the skill infrastructure:
+
+```bash
+make validate       # Validates skill frontmatter (scripts/validate-skills.py)
+make validate-all   # Full validation including configs (scripts/validate-configs.py)
+make test           # Runs project test harness (if language-specific)
+```
+
+These run automatically in CI (`.github/workflows/ci.yml`) on every push and PR.
+
+## Scope 2: Projects Created from This Template
+
+**All projects created from this template must have comprehensive test coverage, regardless of language or framework.**
+
+### Principles
 
 1. **Tests are mandatory.** Every feature must have tests.
 2. **Minimum coverage:** 80% line coverage (enforced by CI).

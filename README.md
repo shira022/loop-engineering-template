@@ -11,6 +11,12 @@
   <a href="https://github.com/shira022/loop-engineering-template/actions/workflows/codeql.yml">
     <img src="https://github.com/shira022/loop-engineering-template/actions/workflows/codeql.yml/badge.svg" alt="CodeQL">
   </a>
+  <a href="https://github.com/shira022/loop-engineering-template/actions/workflows/scorecard.yml">
+    <img src="https://github.com/shira022/loop-engineering-template/actions/workflows/scorecard.yml/badge.svg" alt="OpenSSF Scorecard">
+  </a>
+  <a href="https://shira022.github.io/loop-engineering-template/">
+    <img src="https://img.shields.io/badge/📖-Docs-blue" alt="Docs">
+  </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
   </a>
@@ -19,6 +25,9 @@
   </a>
   <a href="https://github.com/shira022/loop-engineering-template/stargazers">
     <img src="https://img.shields.io/github/stars/shira022/loop-engineering-template?style=social" alt="Stars">
+  </a>
+  <a href="https://codespaces.new/shira022/loop-engineering-template">
+    <img src="https://img.shields.io/badge/Open_in_Codespaces-040f7f?logo=github&logoColor=fff" alt="Open in Codespaces">
   </a>
   <a href="https://github.com/shira022/loop-engineering-template/network/members">
     <img src="https://img.shields.io/github/forks/shira022/loop-engineering-template?style=social" alt="Forks">
@@ -328,6 +337,8 @@ This template uses the `.agents/skills/` format defined by [agentskills.io](http
 | **Agent Harness** | `workflow_dispatch` | Run agents in GitHub Actions |
 | **Release** | Tag `v*.*.*` | Automatic GitHub Release creation |
 | **Dependabot** | Weekly | Automated dependency updates |
+| **Scorecard** | push + weekly | OpenSSF security scorecard |
+| **Pages** | push to `main` | Documentation site on GitHub Pages |
 
 ---
 
@@ -420,6 +431,7 @@ MIT © [shira022](https://github.com/shira022)
 ## 🌟 Support
 
 - ⭐ Star this repository if you find it useful
+- 📖 [Read the documentation](https://shira022.github.io/loop-engineering-template/)
 - 🐛 [Report bugs](https://github.com/shira022/loop-engineering-template/issues/new?labels=bug&template=bug_report.md)
 - 💡 [Suggest features](https://github.com/shira022/loop-engineering-template/issues/new?labels=enhancement&template=feature_request.md)
 - 💬 [Start a discussion](https://github.com/shira022/loop-engineering-template/discussions)

@@ -55,6 +55,13 @@ This `.agents/skills/` format follows the [agentskills.io](https://agentskills.i
 - Cursor
 - GitHub Copilot
 
+## ⭐ Support
+
+If you find this template useful, consider:
+- ⭐ **Starring** the [GitHub repository](https://github.com/shira022/loop-engineering-template) to help others discover it
+- 🐛 Reporting bugs via [Issues](https://github.com/shira022/loop-engineering-template/issues)
+- 💡 Sharing improvement ideas
+
 ---
 
 ## 🇯🇵 日本語
@@ -99,3 +106,10 @@ This `.agents/skills/` format follows the [agentskills.io](https://agentskills.i
 
 この `.agents/skills/` 形式は agentskills.io 標準に準拠しており、
 Hermes Agent、Opencode、Claude Code、Gemini CLI、Cursor、GitHub Copilot 等で利用可能です。
+
+### ⭐ サポート
+
+このテンプレートが役立つと思ったら、以下の方法でサポートをお願いします：
+- ⭐ **スター** を付けて他の人にも見つけてもらいやすくする
+- 🐛 バグ報告は [Issues](https://github.com/shira022/loop-engineering-template/issues) へ
+- 💡 改善アイデアの共有

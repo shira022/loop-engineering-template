@@ -180,7 +180,27 @@ git status
 
 生成された内容をユーザーに確認し、必要に応じて修正します。
 
-### Step 5: 初期コミット & プッシュ
+### Step 5: テンプレートバッジの挿入
+
+新しいプロジェクトの `README.md` 先頭に、元のテンプレートリポジトリへの参照バッジを挿入します。
+これにより、テンプレート利用者のリポジトリを訪れた人が元テンプレートを知ることができます：
+
+```bash
+cd "$PROJECT_DIR/<name>/repo-<name>"
+
+TEMPLATE_REPO="shira022/loop-engineering-template"
+BADGE_LINE="<p align=\"center\">\n  <a href=\"https://github.com/${TEMPLATE_REPO}\">\n    <img src=\"https://img.shields.io/badge/🧬-Generated%20from%20loop--engineering--template-blue\" alt=\"Generated from loop-engineering-template\">\n  </a>\n</p>\n"
+
+# Insert badge right after the h1 heading in README.md
+if grep -q "loop-engineering-template" README.md 2>/dev/null; then
+  echo "Badge already exists, skipping"
+else
+  # Insert after first line (h1)
+  sed -i '1a\'"$BADGE_LINE" README.md
+fi
+```
+
+### Step 6: 初期コミット & プッシュ
 
 ```bash
 cd "$PROJECT_DIR/<name>/repo-<name>"
@@ -189,7 +209,7 @@ git commit -m "🎉 Initial commit: <project-name> - <description>"
 git push origin main
 ```
 
-### Step 6: プロジェクトレジストリへの登録
+### Step 7: プロジェクトレジストリへの登録
 
 `$PROJECT_DIR/repo-registry.yaml` に以下のフォーマットでプロジェクト情報を追記します：
 
@@ -205,7 +225,7 @@ git push origin main
   description: <description>
 ```
 
-### Step 7: セルフデストラクト
+### Step 8: セルフデストラクト
 
 **自分自身の SKILL.md を削除します。**
 
@@ -218,7 +238,7 @@ git push origin main
 rm "$PROJECT_DIR/<name>/repo-<name>/.agents/skills/project-bootstrapper/SKILL.md"
 ```
 
-### Step 8: 完了報告
+### Step 9: 完了報告
 
 以下の内容をユーザーに報告します：
 

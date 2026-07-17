@@ -11,7 +11,7 @@ Loop Engineering implements a **procedural memory** system for AI agents. Instea
 | **Automations** | Scheduled execution — the heartbeat of the loop | `.agents/config/schedules.yaml`, `.github/workflows/agent-harness.yml` |
 | **Worktrees** | Isolated environments for parallel sub-agents | `project-manager` skill, `git worktree` |
 | **Skills** | Codified project knowledge and conventions | `.agents/skills/*/SKILL.md` |
-| **Connectors** | Real tool access via MCP servers | `.mcp/*.json` |
+| **Plugins & Connectors** | Real tool access via MCP servers + distribution bundles | `.mcp/*.json` |
 | **Sub-agents** | Maker/checker split for quality | `.agents/agents/*.yaml` |
 | **State** | Cross-session memory of what's done and next | `learnings/`, `docs/adr/`, `traces/` |
 
@@ -21,7 +21,7 @@ graph TD
         A[Automations<br/>Schedule] --> B[Triage<br/>Discover & Prioritize]
         B --> C[Sub-agents<br/>Maker/Checker Split]
         C --> D[Worktrees<br/>Isolated Execution]
-        D --> E[Connectors<br/>PR + Ticket + Notify]
+        D --> E[Plugins & Connectors<br/>PR + Ticket + Notify]
         E --> F[State<br/>learnings/ + traces/]
         F --> A
     end
@@ -138,6 +138,19 @@ graph LR
 | `.agents/skills/*/SKILL.md` | skill-crafter | All agents | agentskills.io YAML+Markdown |
 | `traces/YYYY-MM-DD-*.json` | loop-engineer | analyze-traces.py | JSON metrics |
 | `learnings/session-review-*.md` | session-reviewer | loop-engineer (next session) | Markdown with action items |
+
+## Tool Implementation Mapping
+
+Each of the 6 building blocks is implemented in both major coding agents. The names differ slightly; the capability is the same:
+
+| Block | Claude Code | Notes |
+|-------|-------------|-------|
+| **Automations** | Scheduled tasks, cron, `/loop` (cadence), `/goal` (run-until-done), hooks, GitHub Actions | Both tools support `/goal` — a separate model checks the stop condition |
+| **Worktrees** | `git worktree`, `--worktree` flag, `isolation: worktree` on subagents | Isolated checkouts so parallel agents don't collide |
+| **Skills** | Agent Skills (`SKILL.md`) — loaded automatically or invoked explicitly | Same SKILL.md format across both tools |
+| **Plugins & Connectors** | MCP servers + plugins. Lifecycle hooks fire shell commands at agent lifecycle points | MCP is the shared protocol; plugins are the distribution mechanism |
+| **Sub-agents** | Task subagents in `.claude/agents/`, agent teams | Maker/checker split; different models catch different mistakes |
+| **State** | Markdown (AGENTS.md, STATE.md, progress files), Linear via MCP | *"The model forgets between runs. The repo doesn't."* |
 
 ## CI Pipeline Architecture
 

@@ -56,12 +56,19 @@ jobs:
           fi
 
           case "$PR_SOURCE" in
-            feature/*)
-              if [ "$PR_TARGET" != "develop" ] && [ "$PR_TARGET" != "main" ]; then
-                echo "feature/* branches must target develop or main"
+            docs/*)
+              if [ "$PR_TARGET" != "main" ]; then
+                echo "docs/* branches must target main"
                 exit 1
               fi
-              echo "feature -> $PR_TARGET: OK"
+              echo "docs -> main: OK"
+              ;;
+            feature/*)
+              if [ "$PR_TARGET" != "develop" ]; then
+                echo "feature/* branches must target develop"
+                exit 1
+              fi
+              echo "feature -> develop: OK"
               ;;
             release/*)
               if [ "$PR_TARGET" != "main" ] && [ "$PR_TARGET" != "develop" ]; then

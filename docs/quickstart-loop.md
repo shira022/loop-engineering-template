@@ -2,7 +2,9 @@
 
 > *"Developers can start with a single scheduled triage automation and a verifier sub-agent, capturing most of the value at a fraction of the token spend."* — The New Stack
 
-This guide gets you from zero to a running loop in **15 minutes**, with just two components: **triage automation** + **verifier sub-agent**. This is the minimum viable loop — you can add worktrees, connectors, and the explorer role later.
+This guide gets you from zero to a running loop in **15 minutes**, with just two components: **triage automation** + **verifier sub-agent**. This is the minimum viable loop — you can add worktrees, plugins & connectors, and the explorer role later.
+
+> *"The model forgets between runs. The repo doesn't. Memory has to be on disk, not in context."* — This is why STATE.md and `learnings/` are the spine of your loop.
 
 ## Step 1: Setup (2 min)
 
@@ -140,8 +142,9 @@ gh pr list --author "@me"
 |------|-----|-----|
 | Week 2 | **Explorer sub-agent** | Better investigation before implementation |
 | Week 3 | **Worktree isolation** | Run multiple sub-agents in parallel |
-| Week 4 | **MCP connectors** | Auto-create PR, update tickets, notify Slack |
-| Week 5 | **/goal pattern** | Run-until-done for complex tasks |
+| Week 4 | **Plugins & Connectors (MCP)** | Auto-create PR, update tickets, notify Slack |
+| Week 5 | **`/goal` (run-until-done)** | Complex tasks with verifiable stop condition |
+| Week 6 | **`/loop` (cadence re-run)** | Continuous monitoring, periodic checks |
 | Ongoing | **Skills compound** | Each new skill = less re-explaining |
 
 ## Reference: The Minimal Loop Files

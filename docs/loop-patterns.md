@@ -13,7 +13,7 @@ This document shows how the 6 building blocks of loop engineering compose into a
 | **Automations** | Scheduled execution — the heartbeat | `.agents/config/schedules.yaml`, `agent-harness.yml` |
 | **Worktrees** | Parallel isolation — no file collisions | `project-manager` skill, `git worktree` |
 | **Skills** | Project knowledge — stop re-explaining | `.agents/skills/*/SKILL.md` |
-| **Connectors** | Real tool access — MCP servers | `.mcp/*.json` |
+| **Plugins & Connectors** | Real tool access — MCP servers + distribution bundles | `.mcp/*.json` |
 | **Sub-agents** | Maker/checker split — catch errors | `.agents/agents/*.yaml` |
 | **State** | Cross-session memory — what's done and next | `learnings/`, AGENTS.md, traces/ |
 
@@ -63,6 +63,15 @@ graph TB
 ```
 
 ## Running the Loop
+
+### In-Session Primitives
+
+Beyond schedules, two in-session primitives drive the loop:
+
+| Primitive | Behavior | Use Case |
+|-----------|----------|----------|
+| **`/loop`** | Re-runs a prompt on a cadence (e.g. every 5 minutes) | Continuous monitoring, periodic checks |
+| **`/goal`** | Keeps running until a verifiable condition is true | "Make all tests pass", "Finish the feature" — the agent that wrote the code isn't the one grading it |
 
 ### Step 1: Set up the Automation
 
@@ -144,11 +153,11 @@ Next morning's run reads this file and continues from ⏳ items.
 
 | Component | Options |
 |-----------|---------|
-| **Scheduler** | GitHub Actions cron, systemd timer, `crontab`, Hermes cron, Codex Automations |
+| **Scheduler** | GitHub Actions cron, `/loop` (in-session cadence), systemd timer, `crontab`, Hermes cron |
 | **Agent** | Claude Code, Codex, Hermes, Opencode, Gemini CLI |
 | **Sub-agents** | Native (`.claude/agents/`, `.codex/agents/`), CLI (`opencode --task`), Hermes `delegate_task()` |
-| **Connectors** | MCP servers, custom API scripts, webhooks |
-| **State storage** | Markdown files, Linear board, GitHub Issues, Notion DB |
+| **Plugins & Connectors** | MCP servers, custom API scripts, webhooks, lifecycle hooks |
+| **State storage** | Markdown files (STATE.md, AGENTS.md), Linear board, GitHub Issues |
 
 ### Scale Up: Multi-repo Loop
 

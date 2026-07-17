@@ -47,9 +47,12 @@
 
 ## 📖 Overview
 
-**Loop Engineering** is a methodology where AI agents follow a continuous **Work → Learn → Improve** cycle. With each session, the agent becomes more effective by persisting knowledge as reusable **skills**.
+> 🧠 **Based on [Loop Engineering](https://addyosmani.com/blog/loop-engineering/) by [Addy Osmani](https://addyosmani.com) (Google)**  
+> *Also covered by [The New Stack](https://thenewstack.io/loop-engineering/)*
 
-This template gives you everything you need to start a new project with loop engineering built in — from the skill orchestration system to CI/CD, branching strategy, and security policies.
+**Loop Engineering** — defined by Addy Osmani in June 2026 — is a methodology where AI agents follow a continuous **Work → Learn → Improve** cycle. Instead of prompting agents one turn at a time, you design **loops**: automated systems that discover work, distribute it to sub-agents, verify results, and persist state across sessions.
+
+This template implements the 6 building blocks of loop engineering — **Automations, Worktrees, Skills, Plugins & Connectors, Sub-agents, and State** — as a reusable project template. Start any project with loop engineering built in, regardless of language or framework.
 
 ```mermaid
 graph LR

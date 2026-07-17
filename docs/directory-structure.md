@@ -2,7 +2,7 @@
 
 ```
 .
-├── .agents/skills/           # 8 agentskills.io-compatible skills
+├── .agents/skills/           # 9 agentskills.io-compatible skills
 │   ├── loop-engineer/        # Core session orchestrator
 │   ├── knowledge-harvest/    # Extract learnings from completed tasks
 │   ├── skill-crafter/        # Auto-create skills from repeated patterns

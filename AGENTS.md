@@ -29,8 +29,8 @@ This template implements the 6 building blocks of loop engineering:
 |-------|-------------|-------|
 | **Automations** | Scheduled execution — heartbeat of the loop | `.agents/config/schedules.yaml`, `agent-harness.yml` (schedule trigger) |
 | **Worktrees** | Isolated checkouts for parallel sub-agents | `project-manager` skill, `git worktree` |
-| **Skills** | Project knowledge codification | `.agents/skills/*/SKILL.md` (8 skills) |
-| **Connectors** | Real tool access via MCP | `.mcp/*.json` (GitHub, Linear, Slack, etc.) |
+| **Skills** | Project knowledge codification | `.agents/skills/*/SKILL.md` (9 skills) |
+| **Plugins & Connectors** | Real tool access via MCP + distribution bundles | `.mcp/*.json` (GitHub, Linear, Slack, etc.) |
 | **Sub-agents** | Maker/checker split for quality | `.agents/agents/*.yaml` (explorer, implementer, verifier) |
 | **State** | Cross-session memory | `learnings/`, `docs/adr/`, `traces/` |
 
@@ -92,7 +92,7 @@ If you find this template useful, consider:
 | **Automations** | 定時実行（ループの心臓） | `.agents/config/schedules.yaml` |
 | **Worktrees** | 並列作業の分離 | `project-manager` スキル |
 | **Skills** | プロジェクト知識のコード化 | `.agents/skills/*/SKILL.md` |
-| **Connectors** | 外部ツール連携 (MCP) | `.mcp/*.json` |
+| **Plugins & Connectors** | 外部ツール連携 (MCP) + 配布バンドル | `.mcp/*.json` |
 | **Sub-agents** | メーカー/チェッカー分離 | `.agents/agents/*.yaml` |
 | **State** | セッション間状態管理 | `learnings/`, `docs/adr/` |
 

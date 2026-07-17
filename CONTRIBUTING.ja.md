@@ -86,8 +86,9 @@ gitGraph
 
 | 種別 | 命名パターン | 例 |
 |------|-------------|-----|
-| feature | `feature/<issue-id>-<description>` | `feature/42-add-markdown-lint` |
-| release | `release/<version>` | `release/1.0.0` |
+|| feature | `feature/<issue-id>-<description>` | `feature/42-add-markdown-lint` |
+|| docs | `docs/<short-description>` | `docs/fix-readme-typo` |
+|| release | `release/<version>` | `release/1.0.0` |
 | hotfix | `hotfix/<version>-<short-desc>` | `hotfix/1.0.1-fix-crash` |
 | bugfix | `bugfix/<issue-id>-<description>` | `bugfix/17-fix-ci-timeout` |
 
@@ -144,6 +145,14 @@ GitHub リポジトリ設定で以下を有効にしてください：
 - [ ] 最低1名のレビュー承認
 - [ ] `develop` から rebase 済み (マージコンフリクトなし)
 - [ ] コミットメッセージが Conventional Commits 形式
+
+#### docs → main (ドキュメントのみ例外)
+ドキュメントのみの変更（README, CONTRIBUTING, AGENTS.md, docs/**, コメント等）は、
+feature → develop → release のサイクルを経由せず、直接 `main` をターゲットにできます：
+- [ ] 変更ファイルがドキュメントのみである（コード/スキルロジックの変更を含まない）
+- [ ] CI + Branch Policy Validation がパスしている
+- [ ] 最低1名のレビュー承認
+- [ ] `main` から rebase 済み (マージコンフリクトなし)
 
 #### release → main / develop
 - [ ] CI + CodeQL + Dependency Review 全パス

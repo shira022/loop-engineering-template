@@ -70,8 +70,8 @@ graph LR
 - **agentskills.io compatible** — works with every major AI coding agent
 - **Skill auto-creation** — repeated patterns are automatically detected and codified
 - **Provider-agnostic sub-agents** — explorer, implementer, verifier roles in neutral YAML format
-- **Automation-ready** — pre-configured schedules, triage skill, and /goal loop
-- **State spine** — STATE.md tracks what's tried, what passed, what's open across sessions
+- **Automation-ready** — pre-configured schedules, triage skill, `/loop` (cadence re-run), and `/goal` (run-until-done)
+- **State spine** — STATE.md tracks what's tried, what passed, what's open across sessions. *"The model forgets between runs. The repo doesn't."*
 - **Triage inbox** — items the loop can't handle get routed for human review
 
 ### 🔄 The Loop Cycle
@@ -83,6 +83,7 @@ graph LR
 | ⚡ **Improve** | `skill-crafter` | Auto-creates skills from 3× repeated patterns |
 | 📝 **Record** | `decision-recorder` | Captures architecture decisions as ADRs |
 | 🔍 **Review** | `session-reviewer` | Retrospectives with action items for next session |
+| *Underlying the whole cycle* | **Automations** (heartbeat) + **State** (spine) | Keep the loop running and remembering |
 
 ### 🤖 Sub-Agent System (Maker/Checker Split)
 - **3 generic roles** — explorer (read-only), implementer (writes code), verifier (reviews)
@@ -96,12 +97,13 @@ graph LR
 - **Triage script** — `scripts/daily-triage.sh` analyzes CI, issues, and commits
 - **Manual dispatch** still available via `workflow_dispatch`
 
-### 🔌 Connectors (MCP)
+### 🔌 Plugins & Connectors (MCP)
 - **GitHub MCP** — create PRs, review issues, manage repos
 - **Linear MCP** — update tickets when PRs are created
 - **Slack MCP** — notify channels of triage results
 - **Filesystem MCP** — local file access for sub-agents
 - **Extensible** — add any MCP-compatible server
+- **Plugins** bundle skills and connectors together for distribution — your teammate installs your setup in one go
 
 ### 🏗️ Project Infrastructure
 - **Git Flow** — `main` / `develop` / `feature/*` / `release/*` / `hotfix/*`
@@ -256,7 +258,7 @@ When you tell your agent *"Bootstrap this project"*, the `project-bootstrapper` 
 
 ```
 .
-├── .agents/skills/           # 8 agentskills.io-compatible skills
+├── .agents/skills/           # 9 agentskills.io-compatible skills
 │   ├── loop-engineer/        # Core session orchestrator
 │   ├── knowledge-harvest/    # Extract learnings from completed tasks
 │   ├── skill-crafter/        # Auto-create skills from repeated patterns

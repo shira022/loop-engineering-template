@@ -47,9 +47,12 @@
 
 ## 📖 概要
 
-**Loop Engineering** は、AIエージェントが **Work（作業）→ Learn（学習）→ Improve（改善）** のサイクルを継続的に繰り返すことで、セッションを重ねるごとにパフォーマンスが向上するソフトウェア開発手法です。
+> 🧠 **[Addy Osmani](https://addyosmani.com)（Google）による [Loop Engineering](https://addyosmani.com/blog/loop-engineering/) をベースにしています**  
+> *[The New Stack](https://thenewstack.io/loop-engineering/) でも紹介されました*
 
-このテンプレートは、Loop Engineering を実践するために必要なすべてを提供します — スキルオーケストレーションシステム、CI/CD、ブランチ戦略、セキュリティポリシーまで、すべてパッケージ化されています。
+**Loop Engineering** — 2026年6月に Addy Osmani が定義した手法 — は、AIエージェントが **Work（作業）→ Learn（学習）→ Improve（改善）** のサイクルを継続的に繰り返すことで、セッションを重ねるごとにパフォーマンスが向上するソフトウェア開発手法です。従来のようにプロンプトを1ターンずつ手入力する代わりに、タスクを自動発見し、サブエージェントに分配し、結果を検証し、状態をセッション間で永続化する **ループ** を設計します。
+
+このテンプレートは、ループエンジニアリングの6つの構成要素 — **Automations（自動化）、Worktrees（作業分離）、Skills（スキル）、Plugins & Connectors（連携）、Sub-agents（サブエージェント）、State（状態管理）** — を具体実装した、再利用可能なプロジェクトテンプレートです。言語やフレームワークに依存せず、あらゆるプロジェクトですぐにループエンジニアリングを始められます。
 
 ```mermaid
 graph LR

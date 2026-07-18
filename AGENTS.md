@@ -1,6 +1,8 @@
 # Loop Engineering Rules
 
-This project implements **Loop Engineering** — an AI-agent-driven software development methodology.
+This project implements **Loop Engineering** — an AI-agent-driven software development methodology
+[defined by Addy Osmani (Google)](https://addyosmani.com/blog/loop-engineering/)
+([also covered by The New Stack](https://thenewstack.io/loop-engineering/)).
 
 ## Core Rules
 

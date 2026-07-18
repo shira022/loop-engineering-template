@@ -56,6 +56,13 @@ jobs:
           fi
 
           case "$PR_SOURCE" in
+            docs/*)
+              if [ "$PR_TARGET" != "main" ]; then
+                echo "docs/* branches must target main"
+                exit 1
+              fi
+              echo "docs -> main: OK"
+              ;;
             feature/*)
               if [ "$PR_TARGET" != "develop" ]; then
                 echo "feature/* branches must target develop"

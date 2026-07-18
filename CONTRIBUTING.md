@@ -100,8 +100,9 @@ gitGraph
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| feature | `feature/<issue-id>-<description>` | `feature/42-add-markdown-lint` |
-| release | `release/<version>` | `release/1.0.0` |
+|| feature | `feature/<issue-id>-<description>` | `feature/42-add-markdown-lint` |
+|| docs | `docs/<short-description>` | `docs/fix-readme-typo` |
+|| release | `release/<version>` | `release/1.0.0` |
 | hotfix | `hotfix/<version>-<short-desc>` | `hotfix/1.0.1-fix-crash` |
 | bugfix | `bugfix/<issue-id>-<description>` | `bugfix/17-fix-ci-timeout` |
 
@@ -114,6 +115,14 @@ gitGraph
 - [ ] At least 1 review approval
 - [ ] Rebased on latest `develop` (no conflicts)
 - [ ] Conventional Commits format
+
+### docs → main (Docs-Only Exception)
+Documentation-only changes (README, CONTRIBUTING, AGENTS.md, docs/**, comments, etc.)
+can bypass the feature → develop → release cycle and target `main` directly:
+- [ ] Only documentation files changed (no code/skill logic)
+- [ ] CI + Branch Policy Validation pass
+- [ ] At least 1 review approval
+- [ ] Rebased on latest `main` (no conflicts)
 
 ### release → main / develop
 - [ ] CI + CodeQL + Dependency Review all pass

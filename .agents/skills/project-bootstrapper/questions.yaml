@@ -1,0 +1,560 @@
+# =============================================================================
+# Bootstrap Questionnaire — loop-engineering-template
+# =============================================================================
+# このファイルは project-bootstrapper スキルが新しいプロジェクトを
+# ブートストラップする際に、ユーザーに質問する内容を定義します。
+#
+# 目的:
+#   1. テンプレートから作成するプロジェクトをユーザーの意図に合わせて
+#      最大限カスタマイズする
+#   2. 質問漏れを防止する
+#   3. 回答から実装リストを自動生成する
+#
+# フォーマット:
+#   - phases: 質問カテゴリごとに分割。順次進行
+#   - questions: 各フェーズ内の質問。依存関係(depends_on)でスキップ制御
+#   - tasks: 回答から実装タスクへの変換ルール
+#
+# 利用エージェント: Hermes Agent, Opencode, Claude Code, Codex, Gemini CLI
+# バージョン: 2.0.0
+# =============================================================================
+
+version: "2.0.0"
+
+# =============================================================================
+# Phase 0: ユーザーレベル把握
+# =============================================================================
+# 最初にこの質問を提示する。回答によって以降の質問の詳細度・説明レベルを調整する。
+# これにより「この技術よくわからない…」という状況で無駄なコンテキスト消費を防ぐ。
+# =============================================================================
+phases:
+
+  - id: user-level
+    label: "🧑‍💻 ユーザーレベル把握"
+    description: "あなたの経験レベルを教えてください。以降の質問の詳細度を調整するために使用します。"
+    questions:
+
+      - id: experience_level
+        type: single_choice
+        prompt: "AIエージェントを使ったソフトウェア開発の経験レベルを教えてください"
+        choices:
+          - value: beginner
+            label: "初心者"
+            description: "AIコーディングエージェントを使うのは初めて。基本的なGit操作はできる。"
+          - value: intermediate
+            label: "中級者"
+            description: "日常的にAIエージェント（Cursor/GitHub Copilot）を使っている。エージェントの指示出しに慣れている。"
+          - value: advanced
+            label: "上級者"
+            description: "Loop Engineeringの概念を理解している。エージェントワークフローを設計したことがある。"
+        impact: controls_detail_level
+
+      - id: loop_familiarity
+        type: single_choice
+        prompt: "Loop Engineering に対する理解度を教えてください"
+        choices:
+          - value: new
+            label: "今回初めて知った"
+          - value: heard
+            label: "聞いたことはある"
+          - value: understood
+            label: "概念を理解している"
+          - value: practiced
+            label: "実践している"
+        depends_on:
+          - experience_level: ["intermediate", "advanced"]
+        impact: controls_detail_level
+
+  # ---------------------------------------------------------------------------
+  # Phase 1: プロジェクト基本情報
+  # ---------------------------------------------------------------------------
+  - id: project-basics
+    label: "📋 プロジェクト基本情報"
+    description: "作成するプロジェクトの基本情報を教えてください。"
+    questions:
+
+      - id: project_name
+        type: free_text
+        prompt: "プロジェクト名を入力してください（例: my-todo-app）"
+        hint: "小文字＋ハイフン区切りを推奨。GitHubリポジトリ名になります。"
+        validation: "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
+        validation_error: "小文字・数字・ハイフンのみ使用可能です（先頭/末尾は英数字）"
+
+      - id: project_description
+        type: free_text
+        prompt: "プロジェクトの説明（作りたいもの/目的）を教えてください"
+        hint: "READMEや初期コミットメッセージに反映します。簡潔で構いません。"
+        optional: true
+
+      - id: repo_visibility
+        type: single_choice
+        prompt: "リポジトリの可視性を選択してください"
+        choices:
+          - value: public
+            label: "公開（Public）"
+            description: "誰でも閲覧可能。OSSとして公開する場合に選択。GitHub Pages / OpenSSF Scorecardが利用可能。"
+          - value: private
+            label: "非公開（Private）"
+            description: "自分と招待したメンバーのみ閲覧可能。ブランチ保護等にGitHub Proが必要。"
+
+      - id: tech_stack
+        type: single_choice
+        prompt: "使用する技術スタックを選択してください"
+        choices:
+          - value: python
+            label: "Python"
+            description: "Flask / FastAPI / Django 等"
+          - value: typescript
+            label: "TypeScript / JavaScript"
+            description: "Next.js / Express / React 等"
+          - value: rust
+            label: "Rust"
+            description: "Actix / Axum / Rocket 等"
+          - value: go
+            label: "Go"
+            description: "Chi / Gin / Echo 等"
+          - value: java
+            label: "Java / Kotlin"
+            description: "Spring Boot / Ktor 等"
+          - value: other
+            label: "その他"
+            description: "上記以外（後で詳細を伺います）"
+
+      - id: tech_stack_detail
+        type: free_text
+        prompt: "使用するフレームワーク、ビルドツール、テストフレームワークを教えてください"
+        hint: "例: FastAPI / uv / pytest | Next.js / npm / vitest | Actix / cargo / cargo-test"
+        depends_on:
+          tech_stack: ["python", "typescript", "rust", "go", "java", "other"]
+
+      - id: project_type
+        type: single_choice
+        prompt: "プロジェクトの運用形態を選択してください"
+        choices:
+          - value: standalone
+            label: "単一プロジェクト"
+            description: "このリポジトリ単体で完結するプロジェクト"
+          - value: sub-project
+            label: "ハブ管理下のサブプロジェクト"
+            description: "hermes-project のようなハブリポジトリの project/ 配下に配置する"
+
+  # ---------------------------------------------------------------------------
+  # Phase 2: テンプレート設定のカスタマイズ
+  # ---------------------------------------------------------------------------
+  - id: template-config
+    label: "⚙️ テンプレート設定のカスタマイズ"
+    description: "Loop Engineering テンプレートに標準で含まれる機能のうち、プロジェクトに合わせて有効/無効を選択してください。"
+    questions:
+
+      - id: gitflow_enabled
+        type: yes_no
+        prompt: "Git Flow ブランチ戦略（main + develop + feature/release/hotfix）を有効にしますか？"
+        description: >
+          developブランチを作成し、CIでブランチルールのバリデーションを行います。
+          有効にすると develop ブランチ、branch-validation CI job、Makefileターゲット、
+          ブランチ名バリデーションスクリプトが作成されます。
+        default: true
+        impact: creates_develop_branch
+
+      - id: pages_enabled
+        type: yes_no
+        prompt: "GitHub Pages（プロジェクトドキュメントサイト）を有効にしますか？"
+        description: >
+          docs/ ディレクトリのMarkdownをGitHub Pagesとして公開します。
+          mainブランチへのpush時に https://<user>.github.io/<repo>/ に自動デプロイされます。
+        default: false
+        depends_on:
+          repo_visibility: ["public"]
+        impact: enables_pages_workflow
+
+      - id: code_owners_enabled
+        type: yes_no
+        prompt: "CODEOWNERS によるコードレビュー責任者設定を有効にしますか？"
+        description: >
+          ファイルごとのレビュー責任者を .github/CODEOWNERS に設定します。
+          後から手動で編集可能です。
+        default: true
+
+      - id: mcp_connectors
+        type: multi_choice
+        prompt: "どのMCPコネクター（外部ツール連携）の設定を含めますか？（複数選択可）"
+        choices:
+          - value: github
+            label: "GitHub MCP"
+            description: "Issue/PRの自動作成、コードレビュー連携"
+            checked: true
+          - value: linear
+            label: "Linear MCP"
+            description: "チケット管理との連携"
+          - value: slack
+            label: "Slack MCP"
+            description: "チャット通知（CI結果、PR作成等）"
+          - value: database
+            label: "Database MCP"
+            description: "データベースクエリ実行"
+          - value: none
+            label: "すべて不要"
+            description: "MCPコネクターは使用しない"
+        default: ["github"]
+        impact: generates_mcp_configs
+
+      - id: eval_harness_enabled
+        type: yes_no
+        prompt: "スキル評価ハーネス（evals）を含めますか？"
+        description: >
+          全スキルの評価テスト（scripts/run-evals.py + 各スキルのevals/evals.json）を含めます。
+        default: true
+
+  # ---------------------------------------------------------------------------
+  # Phase 3: ループエンジニアリング設定
+  # ---------------------------------------------------------------------------
+  - id: loop-setup
+    label: "🔄 ループエンジニアリング設定"
+    description: "ループ（自動化サイクル）の動かし方を設定します。"
+    questions:
+
+      - id: automation_cadence
+        type: single_choice
+        prompt: "自動化（Automations）のスケジュールを選択してください"
+        description: "Loop Engineeringの心臓部である自動実行の頻度を決めます。"
+        choices:
+          - value: full
+            label: "フルセット（推奨）"
+            description: "平日毎朝のCIトリアージ + 毎週月曜のスキルヘルスチェック"
+          - value: triage_only
+            label: "トリアージのみ"
+            description: "平日毎朝のCIトリアージのみ。スキルヘルスチェックは手動実行"
+          - value: manual
+            label: "手動実行のみ"
+            description: "自動スケジュールは設定せず、手動でトリガーする"
+        default: "full"
+
+      - id: sub_agent_format
+        type: single_choice
+        prompt: "サブエージェント（Maker/Checker分割）の定義形式を選択してください"
+        description: "explorer / implementer / verifier の3役割をどの形式で定義するか"
+        choices:
+          - value: generic
+            label: "汎用YAML形式（推奨）"
+            description: "エージェントに依存しない汎用フォーマット"
+          - value: claude
+            label: "Claude Code 形式"
+            description: ".claude/agents/ にネイティブ定義"
+          - value: hermes
+            label: "Hermes Agent 形式"
+          - value: both
+            label: "複数形式"
+            description: "汎用YAML + 特定エージェント形式の両方"
+        default: "generic"
+
+      - id: skill_management
+        type: single_choice
+        prompt: "スキルの管理方法を選択してください"
+        description: "テンプレートのスキル（.agents/skills/）の管理方式"
+        choices:
+          - value: standalone_copy
+            label: "独立コピー"
+            description: "テンプレートからコピーして独立管理。カスタマイズ自由だが、テンプレート更新は手動追従。"
+          - value: symlink_hub
+            label: "シンボリックリンク（ハブ連携）"
+            description: "テンプレートリポジトリへのシンボリックリンク。テンプレート更新が自動反映。"
+          - value: ask_me_later
+            label: "後で決める"
+            description: "とりあえずコピーで作成。"
+        default: "standalone_copy"
+
+      - id: state_management
+        type: single_choice
+        prompt: "状態管理（State）の方法を選択してください"
+        description: "何が終わっていて何が次にやるべきかを追跡する仕組み"
+        choices:
+          - value: statemd
+            label: "STATE.md（推奨）"
+            description: "リポジトリ内の1ファイルで状態管理。シンプルかつ強力。git追跡可能。"
+          - value: github_issues
+            label: "GitHub Issues"
+            description: "Issueベースでの状態管理。STATE.mdは使わない。"
+          - value: both
+            label: "両方"
+            description: "STATE.md + Issues の併用"
+        default: "statemd"
+
+      # 中級者以上へのゲート質問：Phase 4 を表示するか
+      - id: show_advanced_settings
+        type: yes_no
+        prompt: "より詳細な設定（トレース追跡、pre-commitフック、Dev Container）も行いますか？"
+        description: >
+          「はい」の場合、さらに細かい設定項目が表示されます。
+          「いいえ」の場合、デフォルト設定が適用され、実装に進みます。
+        default: false
+        depends_on:
+          - experience_level: ["intermediate", "advanced"]
+
+  # ---------------------------------------------------------------------------
+  # Phase 4: 詳細設定（上級者またはゲート通過時のみ）
+  # ---------------------------------------------------------------------------
+  - id: advanced
+    label: "🔧 詳細設定"
+    description: "より細かい設定を行います。"
+    show_if:
+      condition: "experience_level == 'advanced' or show_advanced_settings == true"
+
+    questions:
+
+      - id: trace_tracking
+        type: yes_no
+        prompt: "セッション実行トレース（traces/）を有効にしますか？"
+        description: >
+          各エージェントセッションの実行ログを traces/ に記録します。
+          scripts/analyze-traces.py で分析可能。トークン使用量の可視化に役立ちます。
+        default: true
+
+      - id: pre_commit_hooks
+        type: yes_no
+        prompt: "pre-commit フックを有効にしますか？"
+        description: >
+          コミット前に自動で lint/フォーマット/シークレットチェックを実行します。
+        default: true
+
+      - id: devcontainer
+        type: yes_no
+        prompt: "Dev Container 設定を含めますか？"
+        description: >
+          GitHub Codespaces / VS Code Remote Containers 用の設定。
+        default: true
+
+# =============================================================================
+# 実装タスクマッピング
+# =============================================================================
+# 各質問の回答から、以下の実装タスクリストを生成する。
+# coarse（粗粒度）と fine（細粒度）の2段階。
+# =============================================================================
+
+tasks:
+
+  # T1: GitHubリポジトリ作成
+  - id: create_repo
+    label: "GitHubリポジトリ作成"
+    description: "テンプレートからGitHubリポジトリを作成し、ローカルにクローンします。"
+    always: true
+    sub_tasks:
+      - "gh repo create {project_name} --template {template_repo} --{repo_visibility}"
+      - "git clone {clone_url} {local_path}"
+      - "mkdir -p {local_path}/../worktrees/"
+
+  # T2: プロジェクトREADME・ドキュメントのカスタマイズ
+  - id: customize_readme
+    label: "README・ドキュメントのプロジェクト向けカスタマイズ"
+    description: "README.md / AGENTS.md / CONTRIBUTING.md をプロジェクト名・説明に合わせて書き換えます。"
+    always: true
+    sub_tasks:
+      - "README.md: タイトルを '{project_name}' に、説明を '{project_description}' に置換"
+      - "README.md: バッジのURLを {repo_url} に変更"
+      - "AGENTS.md: テンプレート固有の記述をプロジェクト固有に置換"
+      - "CONTRIBUTING.md: コントリビュート先をテンプレート→プロジェクトに変更"
+      - "CHANGELOG.md: テンプレートの履歴を削除し [Unreleased] のみにリセット"
+      - "README.md: テンプレート参照バッジを挿入（Generated from loop-engineering-template）"
+
+  # T3: Git Flow セットアップ
+  - id: setup_gitflow
+    label: "Git Flow ブランチ戦略のセットアップ"
+    description: "developブランチを作成し、Git Flow設定を行います。"
+    condition: "gitflow_enabled == true"
+    sub_tasks:
+      - "develop ブランチを main から作成: git checkout -b develop && git push origin develop"
+      - "デフォルトブランチを develop に設定（gh api）"
+      - "CIワークフローのdevelop参照が正しいことを確認"
+      - "make git-flow-init を実行"
+      - "docs/* ブランチ→main直接pushのルールをCONTRIBUTING.mdに記載"
+
+  # T4: GitHub Pages
+  - id: setup_pages
+    label: "GitHub Pages 設定"
+    description: "プロジェクトドキュメントサイトを公開します。"
+    condition: "pages_enabled == true"
+    sub_tasks:
+      - "docs/ の内容が公開可能であることを確認"
+      - "GitHub リポジトリ設定で Pages を有効化（mainブランチ/docs/）"
+      - "pages.yml ワークフローが正しく動作することを確認"
+
+  # T5: スキル管理方式の設定
+  - id: setup_skills
+    label: "スキル管理方式の設定"
+    description: "選択された管理方式に応じてスキルを配置します。"
+    condition: "skill_management != 'ask_me_later'"
+    sub_tasks:
+      - condition: "skill_management == 'standalone_copy'"
+        label: "スキルは既にコピー済み（テンプレート由来）— 状態確認のみ"
+      - condition: "skill_management == 'symlink_hub'"
+        label: "テンプレートへのシンボリックリンクを作成"
+        details: |
+          SKILLS="loop-engineer knowledge-harvest skill-crafter decision-recorder
+                  session-reviewer project-bootstrapper project-manager test-policy triage"
+          for skill in $SKILLS; do
+            rm -rf ".agents/skills/$skill"
+            ln -sf "../../loop-engineering-template/.agents/skills/$skill" ".agents/skills/$skill"
+          done
+
+  # T6: ループ自動化の設定
+  - id: setup_automations
+    label: "ループ自動化の設定"
+    description: "選択された自動化スケジュールに応じて設定します。"
+    condition: "automation_cadence != 'manual'"
+    sub_tasks:
+      - condition: "automation_cadence == 'full'"
+        label: "全自動化を有効化"
+        details: |
+          - schedules.yaml の daily-ci-triage を有効に
+          - schedules.yaml の weekly-skill-health を有効に
+          - agent-harness.yml の schedule トリガーを確認
+      - condition: "automation_cadence == 'triage_only'"
+        label: "トリアージのみ有効化"
+        details: |
+          - schedules.yaml の daily-ci-triage のみ有効に
+          - schedules.yaml の weekly-skill-health をコメントアウト
+      - condition: "automation_cadence == 'full' || automation_cadence == 'triage_only'"
+        label: "agent-harness.yml の schedule トリガーを確認"
+
+  # T7: サブエージェント設定
+  - id: setup_subagents
+    label: "サブエージェント設定"
+    description: "選択された形式でサブエージェントを定義します。"
+    condition: "sub_agent_format != 'generic'"
+    sub_tasks:
+      - condition: "sub_agent_format == 'claude' || sub_agent_format == 'both'"
+        label: "Claude Code形式のサブエージェントを生成"
+      - condition: "sub_agent_format == 'hermes' || sub_agent_format == 'both'"
+        label: "Hermes Agent形式のサブエージェント設定を生成"
+
+  # T8: プロジェクトコードの初期スキャフォールド
+  - id: scaffold_code
+    label: "プロジェクトコードの初期スキャフォールド"
+    description: "選択された技術スタックに応じたコード雛形を生成します。"
+    always: true
+    sub_tasks:
+      - "src/ と tests/ ディレクトリを作成"
+      - "選択言語の .gitignore を設定"
+      - "CI の build-and-test ジョブを選択スタックに合わせて生成"
+      - "pyproject.toml / package.json / Cargo.toml / go.mod を初期化"
+
+  # T9: MCPコネクター設定
+  - id: setup_connectors
+    label: "MCPコネクター設定"
+    description: "選択されたMCPコネクターの設定ファイルを生成します。"
+    condition: "mcp_connectors != 'none'"
+    sub_tasks:
+      - condition: "'github' in mcp_connectors"
+        label: "GitHub MCP設定を有効化"
+      - condition: "'linear' in mcp_connectors"
+        label: "Linear MCP設定を有効化"
+      - condition: "'slack' in mcp_connectors"
+        label: "Slack MCP設定を有効化"
+      - condition: "'database' in mcp_connectors"
+        label: "Database MCP設定を有効化"
+      - ".mcp/README.md に設定方法の説明が含まれていることを確認"
+
+  # T10: 初期コミット & プッシュ
+  - id: initial_commit
+    label: "初期コミット・プッシュ"
+    description: "全変更をステージングし、初期コミットしてプッシュします。"
+    always: true
+    sub_tasks:
+      - "git add -A"
+      - "git commit -m '🎉 Initial commit: {project_name} — {project_description}'"
+      - "git push origin main"
+      - condition: "gitflow_enabled == true"
+        label: "developブランチもプッシュ"
+        details: "git push origin develop"
+
+  # T11: プロジェクトレジストリ登録
+  - id: register_project
+    label: "プロジェクトレジストリ登録"
+    description: "プロジェクト管理レジストリに情報を登録します。"
+    condition: "project_type == 'sub-project'"
+    sub_tasks:
+      - "repo-registry.yaml にプロジェクト情報を追記"
+      - "登録内容をユーザーに確認"
+
+# =============================================================================
+# 質問レベルの例示
+# =============================================================================
+# Phase 0 の回答に応じて、エージェントは質問の語彙・説明の長さを調整すること。
+# 以下は各レベルでの質問の出し方の例である。
+# =============================================================================
+
+question_phrasing_examples:
+
+  gitflow_enabled:
+    beginner: |
+      「Git Flow」というコード管理のルールを有効にしますか？
+      簡単に言うと、「本番用(main)」と「開発用(develop)」の2本のブランチに分けて、
+      新機能は必ず開発用ブランチ経由で追加するルールです。
+      初心者でも安心な設計ですが、最初は少し手順が増えます。
+    intermediate: |
+      Git Flow（main/develop分離 + feature/release/hotfixブランチ運用）を
+      有効にしますか？developブランチを作成し、ブランチ命名ルールのCI検証も行います。
+    advanced: |
+      Git Flow有効？
+
+  pages_enabled:
+    beginner: |
+      プロジェクトの説明書をホームページとして公開できます。
+      GitHub Pagesという機能を使います。
+      公開リポジトリの場合におすすめです。有効にしますか？
+    intermediate: |
+      GitHub Pages（docs/ ディレクトリをプロジェクトサイトとして公開）を有効にしますか？
+    advanced: |
+      GitHub Pages有効？（docs/自動公開）
+
+  mcp_connectors:
+    beginner: |
+      エージェントが外のツールと連携するための設定です。
+      GitHub（IssueやPRの自動作成）やSlack（通知）などとつなげられます。
+      最初はGitHubだけ有効にしておくのがおすすめです。
+    intermediate: |
+      MCPコネクター（外部ツール連携）を選択してください。複数選択可。
+    advanced: >
+      MCPコネクター選択（複数可）:
+      GitHub / Linear / Slack / Database
+
+  automation_cadence:
+    beginner: |
+      ループの「自動実行」の頻度を決めます。
+      - フルセット: 毎朝+毎週の点検。おすすめ。
+      - トリアージのみ: 毎朝のチェックのみ。シンプル。
+      - 手動: 自動実行なし。
+    intermediate: |
+      自動化スケジュール:
+      - フル: daily triage + weekly health
+      - トリアージのみ: daily triage
+      - 手動: なし
+    advanced: |
+      Automation: full / triage_only / manual
+
+  skill_management:
+    beginner: |
+      スキル（知識ファイル）の管理方法です。
+      - 独立コピー: このプロジェクト内に保存。好きに書き換え可。
+      - ハブ連携: テンプレート本体を参照。更新が自動反映。
+      - 後で決める。
+    intermediate: |
+      スキル管理: standalone_copy / symlink_hub / ask_me_later
+    advanced: |
+      Skill mgmt: standalone_copy / symlink_hub / ask_me_later
+
+# =============================================================================
+# 実装の進行ルール
+# =============================================================================
+rules:
+  initial_branch: main
+  self_destruct: true
+
+  # ユーザーレベルに応じた説明スタイル
+  detail_levels:
+    beginner:
+      explanation_style: "verbose"
+      skip_if_not_understood: true
+    intermediate:
+      explanation_style: "concise"
+    advanced:
+      explanation_style: "minimal"

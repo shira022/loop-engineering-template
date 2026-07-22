@@ -113,6 +113,12 @@ git-release-start: ## Start a new release: make git-release-start VERSION=1.0.0
 		echo "Usage: make git-release-start VERSION=1.0.0"; \
 		exit 1; \
 	fi
+	@echo "  🧹 Resetting STATE.md to placeholder values..."
+	@sed -i 's/Last updated:.*/Last updated: YYYY-MM-DDTHH:MM:SSZ/' STATE.md
+	@sed -i 's/Last triage run:.*/Last triage run: YYYY-MM-DD/' STATE.md
+	@sed -i '/^## Recent Resolutions/,/^## Skill Count/{ /^| *[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}/d }' STATE.md
+	@git add STATE.md
+	@git commit -m "chore: reset STATE.md placeholders for release $(VERSION)" 2>/dev/null || echo "  (nothing to reset)"
 	@git flow release start $(VERSION) 2>/dev/null || \
 		(git checkout develop && git pull && git checkout -b release/$(VERSION) && \
 		 echo "Created release/$(VERSION) from develop")

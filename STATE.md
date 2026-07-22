@@ -6,8 +6,8 @@ This file tracks the ongoing state of the loop engineering cycle. It is both rea
 
 ## Current State
 
-**Last updated:** YYYY-MM-DDTHH:MM:SSZ
-**Last triage run:** YYYY-MM-DD (see `learnings/triage-YYYY-MM-DD.md`)
+**Last updated:** 2026-07-22T07:00:00Z
+**Last triage run:** 2026-07-22 (see `learnings/triage-2026-07-22.md`)
 **Open items:** 0
 
 | Item | Status | Source | Assigned To | Since | Updated |
@@ -18,13 +18,15 @@ This file tracks the ongoing state of the loop engineering cycle. It is both rea
 
 | Date | Item | Priority | Status |
 |------|------|----------|--------|
-| _(no inbox items)_ | | | |
+| _(no inbox items)_ | | | | |
 
 ## Recent Resolutions
 
 | Date | Item | Outcome | PR |
 |------|------|---------|----|
-| _(none yet)_ | | | |
+| 2026-07-22 | Agent Harness workflow failure on scheduled runs (Issue #35) | Fixed — removed conflicting pre-push, added daily-triage.sh call, proper create-pull-request handling | Fixed in agent-harness.yml |
+| 2026-07-22 | 5 dependabot dependency bumps | Merged: deploy-pages@v5, setup-python@v6, scorecard-action@2.4.3, codeql-action@v4, configure-pages@v6 | #30, #31, #32, #33, #34 |
+| 2026-07-22 | Stale automation/daily-triage/* branches cleaned up | 3 branches deleted (no associated PRs) | — |
 
 ## Skill Count
 

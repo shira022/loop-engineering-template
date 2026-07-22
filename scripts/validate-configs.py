@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate config files: sub-agent definitions, schedules, and MCP configs."""
+"""Validate config files: sub-agent definitions, schedules, MCP configs, and STATE.md."""
 import sys, json, os, yaml
 from pathlib import Path
 
@@ -88,6 +88,21 @@ def validate_mcp():
                 errors.append(f".mcp/{f.name}: server '{name}' missing 'command'")
         print(f"  ✅ .mcp/{f.name}")
 
+def validate_state_file():
+    """Check STATE.md has placeholder values — warn before release if stale."""
+    state_file = BASE / "STATE.md"
+    if not state_file.exists():
+        warnings.append("STATE.md not found (expected for template)")
+        return
+    content = state_file.read_text()
+    # Only check the Current State section (not code blocks / documentation)
+    # Strip fenced code blocks to avoid false positives from examples
+    import re
+    clean = re.sub(r'```.*?```', '', content, flags=re.DOTALL)
+    # In a template, the state file should use placeholder dates
+    if "2026" in clean or "2025" in clean:
+        warnings.append("STATE.md Current State section contains hardcoded dates — reset to YYYY-MM-DD placeholders before release")
+
 def main():
     print("🔍 Validating sub-agent definitions...")
     validate_sub_agents()
@@ -97,6 +112,9 @@ def main():
     print()
     print("🔍 Validating MCP configs...")
     validate_mcp()
+    print()
+    print("🔍 Validating STATE.md...")
+    validate_state_file()
     print()
     print(f"---\nErrors: {len(errors)}, Warnings: {len(warnings)}")
     for w in warnings:

@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skill evaluation cases for all 8 skills (12 eval cases total)
 - English overview sections in all Japanese-primary skill bodies
 - `depends_on` metadata field in all skill frontmatters
+- STATE.md validation in `validate-configs.py` — warns on hardcoded dates before release
+- `make git-release-start` auto-resets STATE.md to placeholder values
 
 ### Changed
 - README: English primary, Japanese secondary (`README.ja.md`)
@@ -24,10 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CONTRIBUTING.md: English primary
 - All skills: standardized `version`, `metadata`, `compatibility` fields
 - Makefile: added `docs`, `check-updates`, `trace-analyze` targets
+- `agent-harness.yml`: removed conflicting manual pre-push, scheduled runs call `daily-triage.sh` directly
+- `validate-configs.py`: added `validate_state_file()` check
 
 ### Fixed
 - Removed duplicate version fields in decision-recorder, session-reviewer, project-bootstrapper
 - Missing evals/evals.json for project-bootstrapper, project-manager, skill-crafter, test-policy
+- Agent Harness workflow (Issue #35): `create-pull-request` failure on scheduled runs
+- CI: `actions/setup-python` bumped to v6, `deploy-pages` to v5, `scorecard-action` to 2.4.3
+- CI: `codeql-action` bumped to v4, `configure-pages` to v6
 
 ## [0.1.0] - 2026-07-10
 

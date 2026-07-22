@@ -18,13 +18,13 @@ This file tracks the ongoing state of the loop engineering cycle. It is both rea
 
 | Date | Item | Priority | Status |
 |------|------|----------|--------|
-| _(no inbox items)_ | | | |
+| _(no inbox items)_ | | | | |
 
 ## Recent Resolutions
 
 | Date | Item | Outcome | PR |
 |------|------|---------|----|
-| _(none yet)_ | | | |
+| _(none yet — reset for template release)_ | | | |
 
 ## Skill Count
 
@@ -55,14 +55,14 @@ After each triage run, the triage skill updates STATE.md:
 
 ```diff
 + ## Current State
-+ **Last updated:** 2026-07-17T07:05:00Z
-+ **Last triage run:** 2026-07-17
++ **Last updated:** YYYY-MM-DDTHH:MM:SSZ
++ **Last triage run:** YYYY-MM-DD
 + **Open items:** 2
 + 
 + | Item | Status | Source | Assigned To | Since |
 + |------|--------|--------|-------------|-------|
-+ | Auth token expiry | ⏳ Open | triage 2026-07-17 | implementer | 2026-07-17 |
-+ | Rate limiting | 📥 Inbox | triage 2026-07-17 | human | 2026-07-17 |
++ | Auth token expiry | ⏳ Open | triage YYYY-MM-DD | implementer | YYYY-MM-DD |
++ | Rate limiting | 📥 Inbox | triage YYYY-MM-DD | human | YYYY-MM-DD |
 ```
 
 ## Compounding Effect

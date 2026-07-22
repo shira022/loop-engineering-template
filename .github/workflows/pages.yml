@@ -14,7 +14,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-pages:
+    name: Check Pages configuration
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - name: Check if GitHub Pages is enabled
+        id: check
+        run: |
+          # Check using GitHub API
+          PAGES_ENABLED=$(gh api repos/${{ github.repository }}/pages --jq '.status' 2>/dev/null || echo "not_configured")
+          if [ "$PAGES_ENABLED" = "not_configured" ] || [ -z "$PAGES_ENABLED" ]; then
+            echo "enabled=false" >> $GITHUB_OUTPUT
+            echo "⏭️ GitHub Pages is not configured for this repository. Skipping deployment."
+          else
+            echo "enabled=true" >> $GITHUB_OUTPUT
+            echo "✅ GitHub Pages is configured. Proceeding with deployment."
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   deploy:
+    name: Deploy to Pages
+    needs: check-pages
+    if: needs.check-pages.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -22,11 +46,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

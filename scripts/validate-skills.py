@@ -108,8 +108,14 @@ def main():
     validated_count = 0
     skills_with_errors = 0
 
+    # Skip project-bootstrapper which is intentionally self-destructed after use
+    EXCLUDED_SKILLS = {"project-bootstrapper"}
+
     for skill_dir in sorted(SKILLS_DIR.iterdir()):
         if not skill_dir.is_dir():
+            continue
+        if skill_dir.name in EXCLUDED_SKILLS:
+            all_infos.append(f"  ℹ️  {skill_dir.name}: Skipped (intentionally removed after bootstrap)")
             continue
         validated_count += 1
         errors, warnings, infos = validate_skill(skill_dir)

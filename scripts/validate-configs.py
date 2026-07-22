@@ -95,9 +95,13 @@ def validate_state_file():
         warnings.append("STATE.md not found (expected for template)")
         return
     content = state_file.read_text()
+    # Only check the Current State section (not code blocks / documentation)
+    # Strip fenced code blocks to avoid false positives from examples
+    import re
+    clean = re.sub(r'```.*?```', '', content, flags=re.DOTALL)
     # In a template, the state file should use placeholder dates
-    if "2026" in content or "2025" in content:
-        warnings.append("STATE.md contains hardcoded dates — reset to YYYY-MM-DD placeholders before release")
+    if "2026" in clean or "2025" in clean:
+        warnings.append("STATE.md Current State section contains hardcoded dates — reset to YYYY-MM-DD placeholders before release")
 
 def main():
     print("🔍 Validating sub-agent definitions...")

@@ -398,7 +398,7 @@ tasks:
   # T6: ループ自動化の設定
   - id: setup_automations
     label: "ループ自動化の設定"
-    description: "選択された自動化スケジュールに応じて設定します。"
+    description: "選択された自動化スケジュールに応じて設定＋STATE.mdを初期化します。"
     condition: "automation_cadence != 'manual'"
     sub_tasks:
       - condition: "automation_cadence == 'full'"
@@ -414,6 +414,14 @@ tasks:
           - schedules.yaml の weekly-skill-health をコメントアウト
       - condition: "automation_cadence == 'full' || automation_cadence == 'triage_only'"
         label: "agent-harness.yml の schedule トリガーを確認"
+      # STATE.md を実際の日時で初期化（プレースホルダーを置換）
+      - label: "STATE.md を現在の日時で初期化"
+        details: |
+          # STATE.md の Last updated と Last triage run を実際の日時に置換
+          TODAY=$(date +%Y-%m-%d)
+          NOW=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+          sed -i "s/YYYY-MM-DDTHH:MM:SSZ/$NOW/" STATE.md
+          sed -i "s/YYYY-MM-DD.*(see.*)/$TODAY (initial bootstrap)/" STATE.md
 
   # T7: サブエージェント設定
   - id: setup_subagents

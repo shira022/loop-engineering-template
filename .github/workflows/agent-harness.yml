@@ -99,6 +99,7 @@ jobs:
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v7
+        continue-on-error: true
         with:
           branch: "${{ steps.branch.outputs.branch }}"
           base: develop
@@ -124,12 +125,16 @@ jobs:
 
       - name: PR result
         run: |
-          echo "Pull request operation: ${{ steps.pr.outputs.pull-request-operation }}"
-          echo "Pull request number: ${{ steps.pr.outputs.pull-request-number }}"
-          if [ "${{ steps.pr.outputs.pull-request-operation }}" = "none" ]; then
-            echo "✅ No changes detected — nothing to PR."
-          elif [ "${{ steps.pr.outputs.pull-request-operation }}" = "created" ]; then
-            echo "✅ PR #${{ steps.pr.outputs.pull-request-number }} created."
-          elif [ "${{ steps.pr.outputs.pull-request-operation }}" = "updated" ]; then
-            echo "✅ PR #${{ steps.pr.outputs.pull-request-number }} updated."
+          if [ "${{ steps.pr.outcome }}" = "failure" ]; then
+            echo "⚠️  PR creation skipped or failed (no changes or branch issue). This is normal for scheduled runs with no new findings."
+          else
+            echo "Pull request operation: ${{ steps.pr.outputs.pull-request-operation }}"
+            echo "Pull request number: ${{ steps.pr.outputs.pull-request-number }}"
+            if [ "${{ steps.pr.outputs.pull-request-operation }}" = "none" ]; then
+              echo "✅ No changes detected — nothing to PR."
+            elif [ "${{ steps.pr.outputs.pull-request-operation }}" = "created" ]; then
+              echo "✅ PR #${{ steps.pr.outputs.pull-request-number }} created."
+            elif [ "${{ steps.pr.outputs.pull-request-operation }}" = "updated" ]; then
+              echo "✅ PR #${{ steps.pr.outputs.pull-request-number }} updated."
+            fi
           fi

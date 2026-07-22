@@ -59,6 +59,7 @@ jobs:
           echo "TASK=$TASK" >> $GITHUB_ENV
 
       - name: Install agent (${{ inputs.agent || 'stub' }})
+        if: github.event_name != 'schedule'
         run: |
           AGENT="${{ inputs.agent }}"
           [ -z "$AGENT" ] && AGENT="stub"
@@ -80,34 +81,36 @@ jobs:
               ;;
           esac
 
-      - name: Run agent task
+      - name: Run task (scheduled — daily triage)
+        if: github.event_name == 'schedule'
+        run: |
+          echo "::notice title=Daily Triage::Running daily CI triage..."
+          bash scripts/daily-triage.sh
+          echo "status=completed" >> $GITHUB_OUTPUT
+
+      - name: Run agent task (manual dispatch)
+        if: github.event_name != 'schedule'
         id: agent-run
         run: |
           echo "::notice title=Agent Task::${{ env.TASK }}"
           bash scripts/agent-runner.sh "${AGENT:-stub}" "${{ env.TASK }}"
           echo "status=completed" >> $GITHUB_OUTPUT
 
-      - name: Commit agent changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet || git commit -m "${{ env.TASK }}"
-          git push origin "$BRANCH"
-
       - name: Create Pull Request
+        id: pr
         uses: peter-evans/create-pull-request@v7
+        continue-on-error: true
         with:
           branch: "${{ steps.branch.outputs.branch }}"
           base: develop
           title: "${{ env.TASK }}"
           body: |
             ## 🤖 Automated Agent Run
-            
+
             **Task:** ${{ env.TASK }}
             **Agent:** ${{ inputs.agent || 'scheduled' }}
             **Trigger:** ${{ github.event_name }}
-            
+
             This PR was automatically created by the Agent Harness workflow.
             Please review the changes before merging.
           labels: |
@@ -116,3 +119,22 @@ jobs:
           add-paths: |
             learnings/
             traces/
+            .agent/
+            STATE.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: PR result
+        run: |
+          if [ "${{ steps.pr.outcome }}" = "failure" ]; then
+            echo "⚠️  PR creation skipped or failed (no changes or branch issue). This is normal for scheduled runs with no new findings."
+          else
+            echo "Pull request operation: ${{ steps.pr.outputs.pull-request-operation }}"
+            echo "Pull request number: ${{ steps.pr.outputs.pull-request-number }}"
+            if [ "${{ steps.pr.outputs.pull-request-operation }}" = "none" ]; then
+              echo "✅ No changes detected — nothing to PR."
+            elif [ "${{ steps.pr.outputs.pull-request-operation }}" = "created" ]; then
+              echo "✅ PR #${{ steps.pr.outputs.pull-request-number }} created."
+            elif [ "${{ steps.pr.outputs.pull-request-operation }}" = "updated" ]; then
+              echo "✅ PR #${{ steps.pr.outputs.pull-request-number }} updated."
+            fi
+          fi

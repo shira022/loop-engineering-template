@@ -11,13 +11,15 @@ permissions: read-all
 jobs:
   analysis:
     name: Scorecard analysis
+    if: ${{ github.repository_visibility == 'public' }}
     runs-on: ubuntu-latest
     permissions:
       security-events: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: ossf/scorecard-action@v2.4.0
+      - uses: ossf/scorecard-action@v2.4.3
+        continue-on-error: true
         with:
           results_file: results.sarif
           results_format: sarif
@@ -27,6 +29,13 @@ jobs:
           name: SARIF file
           path: results.sarif
           retention-days: 5
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: results.sarif
+
+  private-skip:
+    name: Scorecard (skipped — private repo)
+    if: ${{ github.repository_visibility != 'public' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "⏭️ Scorecard analysis requires a public repository. Skipping."

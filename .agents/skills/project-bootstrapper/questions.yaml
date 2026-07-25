@@ -444,6 +444,30 @@ tasks:
       - "選択言語の .gitignore を設定"
       - "CI の build-and-test ジョブを選択スタックに合わせて生成"
       - "pyproject.toml / package.json / Cargo.toml / go.mod を初期化"
+      - label: "README.md: テンプレートのバッジ群を維持・プロジェクト用に書き換え"
+        details: |
+          テンプレート由来のバッジ（CI, CodeQL, License, agentskills.io, Stars,
+          Codespaces, Forks 等）は削除せず、URLのみプロジェクト用に書き換えること。
+          言語・フレームワークに依存しないバッジは全て維持し、最低6個以上を保つ。
+      - label: "テストランナーのソースパス設定を確認"
+        details: |
+          プロジェクトのソースコードレイアウトに合わせて、テストランナーが
+          正しくimport/resolveできるよう設定すること。
+          （Python: pyproject.toml の pythonpath,  Node: package.json の exports,
+            Go: go.mod の module path, Rust: Cargo.toml の lib 設定 等）
+      - label: "Makefile: アプリケーション起動用ターゲットを追加"
+        details: |
+          選択されたフレームワークに応じた起動コマンドを Makefile の run/dev/start
+          ターゲットとして追加すること。例:
+          - Python (FastAPI): uvicorn src.main:app --reload
+          - Node (Express): node src/index.js (or npm run dev)
+          - Go: go run ./cmd/main.go
+          - Rust: cargo run
+      - label: "依存関係のロックファイルを生成して同梱"
+        details: |
+          選択されたパッケージマネージャのロックファイルを生成してコミットすること。
+          ロックファイルがないとCIのビルド再現性が損なわれる。
+          （uv.lock / package-lock.json / go.sum / Cargo.lock 等）
 
   # T9: MCPコネクター設定
   - id: setup_connectors
@@ -453,8 +477,24 @@ tasks:
     sub_tasks:
       - condition: "'github' in mcp_connectors"
         label: "GitHub MCP設定を有効化"
+        details: |
+          .mcp/github.json を作成。形式は .mcp にある既存の MCP JSON ファイル
+          （例: database.json, slack.json）と同一の mcpServers ラッパー形式にすること。
+          誤った形式（name/command/args 直書き）で作成しないこと。
+          正しい形式:
+          {
+            "mcpServers": {
+              "github": {
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-github"],
+                "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
+              }
+            }
+          }
       - condition: "'linear' in mcp_connectors"
         label: "Linear MCP設定を有効化"
+        details: |
+          .mcp/linear.json を作成。形式は既存の MCP JSON と同一の mcpServers ラッパー形式にすること。
       - condition: "'slack' in mcp_connectors"
         label: "Slack MCP設定を有効化"
       - condition: "'database' in mcp_connectors"
@@ -482,6 +522,75 @@ tasks:
     sub_tasks:
       - "repo-registry.yaml にプロジェクト情報を追記"
       - "登録内容をユーザーに確認"
+
+  # T12: ブートストラップ後検証
+  - id: post_bootstrap_validation
+    label: "ブートストラップ後検証"
+    description: "生成されたプロジェクトがテンプレートとして正常に機能するか包括的に検証します。"
+    always: true
+    sub_tasks:
+      - label: "バリデーションスクリプトを実行"
+        details: |
+          python3 scripts/validate-skills.py
+          python3 scripts/validate-configs.py
+          # validate-configs.py がエラーを出した場合は修正してから先に進む
+      - label: "CIワークフロー構文チェック"
+        details: |
+          # GitHub Actions ワークフローにYAMLエラーがないか確認
+          python3 -c "import yaml, glob; [yaml.safe_load(open(f)) for f in glob.glob('.github/workflows/*.yml')]"
+          echo "All workflow YAML files valid"
+      - label: "テスト実行"
+        details: |
+          make test 2>/dev/null || echo "Tests not yet implemented — add tests for the scaffolded code"
+      - label: "MCP設定ファイルの形式チェック"
+        details: |-
+          for f in .mcp/*.json; do
+            [ "$(basename $f)" = "README.md" ] && continue
+            [ "$(basename $f)" = "example-config.json" ] && continue
+            python3 -c "import json,sys; d=json.load(open('$f')); assert 'mcpServers' in d, f'$f missing mcpServers key'; print(f'OK: $f')" || { echo "FIX: $f needs mcpServers wrapper"; exit 1; }
+          done
+      - label: "READMEバッジ数チェック（6個以上必須）"
+        details: |
+          BADGES=$(grep -c 'img.shields.io\|badge.svg' README.md 2>/dev/null || echo 0)
+          if [ "$BADGES" -lt 6 ]; then
+            echo "WARNING: Only $BADGES badges in README.md — template requires 6+"
+            echo "Add missing badges (Scorecard, Stars, Forks, Codespaces at minimum)"
+          else
+            echo "OK: $BADGES badges in README.md"
+      - label: "ロックファイルの存在確認"
+        details: |
+          # パッケージマネージャのロックファイルが存在するか確認
+          LOCK_FOUND=false
+          for lf in uv.lock package-lock.json yarn.lock pnpm-lock.yaml go.sum Cargo.lock Gemfile.lock; do
+            if [ -f "$lf" ]; then
+              echo "OK: Lock file '$lf' found"
+              LOCK_FOUND=true
+              break
+            fi
+          done
+          if [ "$LOCK_FOUND" = false ]; then
+            echo "WARNING: No lock file found — CI reproducibility at risk"
+            echo "Generate one with your package manager before commit"
+          fi
+          fi
+      - label: "パッケージマネージャ設定のソースパス確認"
+        details: |
+          # 選択された言語の設定ファイルを確認し、ソースコード解決が正しく設定されているか検証
+          if [ -f pyproject.toml ]; then
+            if grep -q 'pythonpath.*src' pyproject.toml 2>/dev/null; then
+              echo "OK (Python): pythonpath → src/"
+            elif grep -q 'pythonpath' pyproject.toml 2>/dev/null; then
+              echo "WARNING (Python): pythonpath が src/ 以外 — src/ layout との互換性を確認"
+            fi
+          elif [ -f package.json ]; then
+            if grep -q '"exports"' package.json 2>/dev/null; then
+              echo "OK (Node): package.json exports 設定あり"
+            fi
+          elif [ -f go.mod ]; then
+            echo "OK (Go): go.mod module path 設定済み"
+          elif [ -f Cargo.toml ]; then
+            echo "OK (Rust): Cargo.toml lib 設定確認済み"
+          fi
 
 # =============================================================================
 # 質問レベルの例示

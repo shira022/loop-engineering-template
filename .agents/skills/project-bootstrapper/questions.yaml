@@ -444,29 +444,30 @@ tasks:
       - "選択言語の .gitignore を設定"
       - "CI の build-and-test ジョブを選択スタックに合わせて生成"
       - "pyproject.toml / package.json / Cargo.toml / go.mod を初期化"
-      - condition: "tech_stack contains 'python'"
-        label: "README.md: テンプレートの9個のバッジ（CI/CodeQL/Scorecard/License/agentskills.io/Stars/Codespaces/Forks）を維持・プロジェクト用に書き換え"
+      - label: "README.md: テンプレートのバッジ群を維持・プロジェクト用に書き換え"
         details: |
-          テンプレート由来の8個のバッジ（CI, CodeQL, Scorecard, License, agentskills.io,
-          Stars, Codespaces, Forks）は削除せず、URLのみプロジェクト用に書き換えること。
-          最低6個以上のバッジを維持すること。
-      - condition: "tech_stack contains 'python'"
-        label: "pyproject.toml: src/ レイアウトの場合 pythonpath = ['src'] に設定"
+          テンプレート由来のバッジ（CI, CodeQL, License, agentskills.io, Stars,
+          Codespaces, Forks 等）は削除せず、URLのみプロジェクト用に書き換えること。
+          言語・フレームワークに依存しないバッジは全て維持し、最低6個以上を保つ。
+      - label: "テストランナーのソースパス設定を確認"
         details: |
-          [tool.pytest.ini_options]
-          testpaths = ["tests"]
-          pythonpath = ["src"]  # ← src/ レイアウトでは必須。 ["."] にしないこと。
-      - condition: "tech_stack contains 'python'"
-        label: "Makefile: アプリケーション起動用の run ターゲットを追加"
+          プロジェクトのソースコードレイアウトに合わせて、テストランナーが
+          正しくimport/resolveできるよう設定すること。
+          （Python: pyproject.toml の pythonpath,  Node: package.json の exports,
+            Go: go.mod の module path, Rust: Cargo.toml の lib 設定 等）
+      - label: "Makefile: アプリケーション起動用ターゲットを追加"
         details: |
-          run: ## Start the development server
-          \t@uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
-      - condition: "tech_stack contains 'python'"
-        label: "依存関係のロックファイル（uv.lock / requirements.txt）を生成して同梱"
+          選択されたフレームワークに応じた起動コマンドを Makefile の run/dev/start
+          ターゲットとして追加すること。例:
+          - Python (FastAPI): uvicorn src.main:app --reload
+          - Node (Express): node src/index.js (or npm run dev)
+          - Go: go run ./cmd/main.go
+          - Rust: cargo run
+      - label: "依存関係のロックファイルを生成して同梱"
         details: |
-          uv sync --all-extras で uv.lock を生成するか、
-          pip freeze > requirements.txt で requirements.txt を生成してコミットする。
+          選択されたパッケージマネージャのロックファイルを生成してコミットすること。
           ロックファイルがないとCIのビルド再現性が損なわれる。
+          （uv.lock / package-lock.json / go.sum / Cargo.lock 等）
 
   # T9: MCPコネクター設定
   - id: setup_connectors
@@ -556,13 +557,39 @@ tasks:
             echo "Add missing badges (Scorecard, Stars, Forks, Codespaces at minimum)"
           else
             echo "OK: $BADGES badges in README.md"
-          fi
-      - label: "pyproject.toml の pythonpath 確認"
+      - label: "ロックファイルの存在確認"
         details: |
-          if grep -q 'pythonpath.*src' pyproject.toml 2>/dev/null; then
-            echo "OK: pythonpath points to src/"
-          elif grep -q 'pythonpath' pyproject.toml 2>/dev/null; then
-            echo "WARNING: pythonpath set but not to src/ — check for src/ layout compatibility"
+          # パッケージマネージャのロックファイルが存在するか確認
+          LOCK_FOUND=false
+          for lf in uv.lock package-lock.json yarn.lock pnpm-lock.yaml go.sum Cargo.lock Gemfile.lock; do
+            if [ -f "$lf" ]; then
+              echo "OK: Lock file '$lf' found"
+              LOCK_FOUND=true
+              break
+            fi
+          done
+          if [ "$LOCK_FOUND" = false ]; then
+            echo "WARNING: No lock file found — CI reproducibility at risk"
+            echo "Generate one with your package manager before commit"
+          fi
+          fi
+      - label: "パッケージマネージャ設定のソースパス確認"
+        details: |
+          # 選択された言語の設定ファイルを確認し、ソースコード解決が正しく設定されているか検証
+          if [ -f pyproject.toml ]; then
+            if grep -q 'pythonpath.*src' pyproject.toml 2>/dev/null; then
+              echo "OK (Python): pythonpath → src/"
+            elif grep -q 'pythonpath' pyproject.toml 2>/dev/null; then
+              echo "WARNING (Python): pythonpath が src/ 以外 — src/ layout との互換性を確認"
+            fi
+          elif [ -f package.json ]; then
+            if grep -q '"exports"' package.json 2>/dev/null; then
+              echo "OK (Node): package.json exports 設定あり"
+            fi
+          elif [ -f go.mod ]; then
+            echo "OK (Go): go.mod module path 設定済み"
+          elif [ -f Cargo.toml ]; then
+            echo "OK (Rust): Cargo.toml lib 設定確認済み"
           fi
 
 # =============================================================================

@@ -444,6 +444,29 @@ tasks:
       - "選択言語の .gitignore を設定"
       - "CI の build-and-test ジョブを選択スタックに合わせて生成"
       - "pyproject.toml / package.json / Cargo.toml / go.mod を初期化"
+      - condition: "tech_stack contains 'python'"
+        label: "README.md: テンプレートの9個のバッジ（CI/CodeQL/Scorecard/License/agentskills.io/Stars/Codespaces/Forks）を維持・プロジェクト用に書き換え"
+        details: |
+          テンプレート由来の8個のバッジ（CI, CodeQL, Scorecard, License, agentskills.io,
+          Stars, Codespaces, Forks）は削除せず、URLのみプロジェクト用に書き換えること。
+          最低6個以上のバッジを維持すること。
+      - condition: "tech_stack contains 'python'"
+        label: "pyproject.toml: src/ レイアウトの場合 pythonpath = ['src'] に設定"
+        details: |
+          [tool.pytest.ini_options]
+          testpaths = ["tests"]
+          pythonpath = ["src"]  # ← src/ レイアウトでは必須。 ["."] にしないこと。
+      - condition: "tech_stack contains 'python'"
+        label: "Makefile: アプリケーション起動用の run ターゲットを追加"
+        details: |
+          run: ## Start the development server
+          \t@uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
+      - condition: "tech_stack contains 'python'"
+        label: "依存関係のロックファイル（uv.lock / requirements.txt）を生成して同梱"
+        details: |
+          uv sync --all-extras で uv.lock を生成するか、
+          pip freeze > requirements.txt で requirements.txt を生成してコミットする。
+          ロックファイルがないとCIのビルド再現性が損なわれる。
 
   # T9: MCPコネクター設定
   - id: setup_connectors
@@ -453,8 +476,24 @@ tasks:
     sub_tasks:
       - condition: "'github' in mcp_connectors"
         label: "GitHub MCP設定を有効化"
+        details: |
+          .mcp/github.json を作成。形式は .mcp にある既存の MCP JSON ファイル
+          （例: database.json, slack.json）と同一の mcpServers ラッパー形式にすること。
+          誤った形式（name/command/args 直書き）で作成しないこと。
+          正しい形式:
+          {
+            "mcpServers": {
+              "github": {
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-github"],
+                "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
+              }
+            }
+          }
       - condition: "'linear' in mcp_connectors"
         label: "Linear MCP設定を有効化"
+        details: |
+          .mcp/linear.json を作成。形式は既存の MCP JSON と同一の mcpServers ラッパー形式にすること。
       - condition: "'slack' in mcp_connectors"
         label: "Slack MCP設定を有効化"
       - condition: "'database' in mcp_connectors"
@@ -482,6 +521,49 @@ tasks:
     sub_tasks:
       - "repo-registry.yaml にプロジェクト情報を追記"
       - "登録内容をユーザーに確認"
+
+  # T12: ブートストラップ後検証
+  - id: post_bootstrap_validation
+    label: "ブートストラップ後検証"
+    description: "生成されたプロジェクトがテンプレートとして正常に機能するか包括的に検証します。"
+    always: true
+    sub_tasks:
+      - label: "バリデーションスクリプトを実行"
+        details: |
+          python3 scripts/validate-skills.py
+          python3 scripts/validate-configs.py
+          # validate-configs.py がエラーを出した場合は修正してから先に進む
+      - label: "CIワークフロー構文チェック"
+        details: |
+          # GitHub Actions ワークフローにYAMLエラーがないか確認
+          python3 -c "import yaml, glob; [yaml.safe_load(open(f)) for f in glob.glob('.github/workflows/*.yml')]"
+          echo "All workflow YAML files valid"
+      - label: "テスト実行"
+        details: |
+          make test 2>/dev/null || echo "Tests not yet implemented — add tests for the scaffolded code"
+      - label: "MCP設定ファイルの形式チェック"
+        details: |-
+          for f in .mcp/*.json; do
+            [ "$(basename $f)" = "README.md" ] && continue
+            [ "$(basename $f)" = "example-config.json" ] && continue
+            python3 -c "import json,sys; d=json.load(open('$f')); assert 'mcpServers' in d, f'$f missing mcpServers key'; print(f'OK: $f')" || { echo "FIX: $f needs mcpServers wrapper"; exit 1; }
+          done
+      - label: "READMEバッジ数チェック（6個以上必須）"
+        details: |
+          BADGES=$(grep -c 'img.shields.io\|badge.svg' README.md 2>/dev/null || echo 0)
+          if [ "$BADGES" -lt 6 ]; then
+            echo "WARNING: Only $BADGES badges in README.md — template requires 6+"
+            echo "Add missing badges (Scorecard, Stars, Forks, Codespaces at minimum)"
+          else
+            echo "OK: $BADGES badges in README.md"
+          fi
+      - label: "pyproject.toml の pythonpath 確認"
+        details: |
+          if grep -q 'pythonpath.*src' pyproject.toml 2>/dev/null; then
+            echo "OK: pythonpath points to src/"
+          elif grep -q 'pythonpath' pyproject.toml 2>/dev/null; then
+            echo "WARNING: pythonpath set but not to src/ — check for src/ layout compatibility"
+          fi
 
 # =============================================================================
 # 質問レベルの例示

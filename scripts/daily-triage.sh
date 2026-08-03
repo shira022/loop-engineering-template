@@ -64,7 +64,7 @@ try:
         labels = ','.join(l['name'] for l in i.get('labels', []))
         print(f\"  - #{i['number']} {i['title']} [{labels}] ({i['createdAt'][:10]})\")
 except: pass
-" >> "$REPORT
+" >> "$REPORT"
     else
         echo "(gh CLI not authenticated or no issues)" >> "$REPORT"
     fi

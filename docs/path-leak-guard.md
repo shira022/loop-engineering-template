@@ -62,9 +62,11 @@ document — otherwise the patterns in those files would trip the check.
 
 The check never fails on obvious placeholders, including:
 
-`<user>`, `<u>`, `<name>`, `user`, `username`, `youruser`, `example`,
-`alice`, `bob`, `runner`, `vscode`, `node`, `nonroot`, `$HOME`, `${HOME}`,
-`%USERNAME%`, `%USERPROFILE%`, `<%= ... %>`, `{{ ... }}`, `xxxx`, `xxxxx`.
+`<user>`, `<u>`, `<name>`, `<you>`, `<yourname>`, `user`, `username`,
+`youruser`, `runner`, `vscode`, `node`, `nonroot`, `$HOME`, `${HOME}`,
+`%USERNAME%`, `%USERPROFILE%`, `<%= ... %>`, `{{ ... }}`, `xxxx`, `xxxxx`,
+and synthetic fixture names used in tests (`alice`, `alice2`, `bob`, `carol`,
+`dave`, `test`, `dummy`, `sample`).
 
 ### Opt-out marker
 

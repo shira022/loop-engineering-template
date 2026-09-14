@@ -42,7 +42,10 @@ jobs:
           is_allowed() {
             local u="$1"
             case "$u" in
-              '<user>'|'<u>'|'<name>'|user|username|youruser|example|alice|bob|runner|vscode|node|nonroot) return 0 ;;
+              '<user>'|'<u>'|'<name>'|'<you>'|'<yourname>'|'<your-user>'|'<username>') return 0 ;;
+              user|username|youruser|yourname|example|exampleuser|runner|vscode|node|nonroot) return 0 ;;
+              # synthetic fixture names used by tests and docs (optionally numbered)
+              alice|alice[0-9]|alice[0-9][0-9]|bob|bob[0-9]|carol|dave|test|test[0-9]|dummy|sample) return 0 ;;
               'xxxx'|'xxxxx') return 0 ;;
               '$HOME'|'${HOME}') return 0 ;;
               '%USERNAME%'|'%USERPROFILE%') return 0 ;;

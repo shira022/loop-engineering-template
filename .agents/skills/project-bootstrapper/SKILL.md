@@ -229,6 +229,25 @@ response = clarify(
 - **T10 初期コミット**: 必ず最初のコミットメッセージは絵文字付きで
   意味のある内容にすること。
 
+### Path leak guard (post-scaffold)
+
+After the project skeleton is generated, always add the caller workflow so the
+new repository's CI rejects commits that leak user-specific absolute paths:
+
+- Create `.github/workflows/path-leak-guard.yml` in the new project:
+
+  ```yaml
+  name: Path Leak Guard
+  on: [push, pull_request]
+  jobs:
+    scan:
+      uses: shira022/loop-engineering-template/.github/workflows/path-leak-check.yml@main
+  ```
+
+- The local pre-commit guard is provided by the machine-local `pii-guard` tool.
+  Run `pii-guard install <repo>` to set the repository's `core.hooksPath`. The
+  scanner is never copied into the repository — do not add it to the scaffold.
+
 ### エラーハンドリング
 
 | エラー | 対処 |

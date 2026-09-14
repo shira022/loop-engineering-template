@@ -284,6 +284,7 @@ When you tell your agent *"Bootstrap this project"*, the `project-bootstrapper` 
 │   ├── quickstart-loop.md    # 15-minute start with triage + verifier
 │   ├── triage-inbox.md       # Triage inbox pattern documentation
 │   ├── worktree-isolation.md # Worktree isolation for sub-agents
+│   ├── path-leak-guard.md    # Prevent committed local path leaks
 │   ├── hub-workflow.md       # Multi-project hub setup
 │   └── schedule-setup.md     # Schedule platform translation guide
 ├── inbox/                    # Triage inbox — items the loop can't handle

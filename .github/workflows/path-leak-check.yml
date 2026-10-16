@@ -1,0 +1,106 @@
+name: Path Leak Check
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Scan tracked files for local path leaks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan for user-specific absolute paths
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          MARKER='path-leak-check:allow'
+
+          POSIX_RE='/(home|Users)/[^/[:space:]]+/'
+          WIN_RE='[Cc]:[\\/]+[Uu]sers[\\/]+[^\\/[:space:]]+[\\/]'
+          WSL_MOUNT_RE='/mnt/[A-Za-z]/[Uu]sers/[^/[:space:]]+/'
+          WSL_UNC_RE='\\\\wsl(\$|\.localhost)\\[^\\[:space:]]+\\home\\[^\\[:space:]]+\\'
+          CANDIDATE_RE="${POSIX_RE}|${WIN_RE}|${WSL_MOUNT_RE}|${WSL_UNC_RE}"
+
+          EXCLUDES=(
+            ':(exclude).github/workflows/path-leak-check.yml'
+            ':(exclude)docs/path-leak-guard.md'
+            ':(exclude)node_modules'
+            ':(exclude)dist'
+            ':(exclude)build'
+            ':(exclude).git'
+            ':(exclude)vendor'
+            ':(exclude)target'
+          )
+
+          is_allowed() {
+            local u="$1"
+            case "$u" in
+              '<user>'|'<u>'|'<name>'|'<you>'|'<yourname>'|'<your-user>'|'<username>') return 0 ;;
+              user|username|youruser|yourname|example|exampleuser|runner|vscode|node|nonroot) return 0 ;;
+              # synthetic fixture names used by tests and docs (optionally numbered)
+              alice|alice[0-9]|alice[0-9][0-9]|bob|bob[0-9]|carol|dave|test|test[0-9]|dummy|sample) return 0 ;;
+              'xxxx'|'xxxxx') return 0 ;;
+              '$HOME'|'${HOME}') return 0 ;;
+              '%USERNAME%'|'%USERPROFILE%') return 0 ;;
+            esac
+            [[ "$u" == '{{'* ]] && return 0
+            [[ "$u" == '<%='* ]] && return 0
+            [[ "$u" == *'}}' ]] && return 0
+            [[ "$u" == *'%>' ]] && return 0
+            return 1
+          }
+
+          extract_user() {
+            local line="$1"
+            if [[ "$line" =~ [Cc]:[\\/]+[Uu]sers[\\/]+([^\\/[:space:]]+)[\\/] ]]; then printf '%s' "${BASH_REMATCH[1]}"; return 0; fi
+            if [[ "$line" =~ \\\\wsl(\$|\.localhost)\\[^\\[:space:]]+\\home\\([^\\[:space:]]+)\\ ]]; then printf '%s' "${BASH_REMATCH[2]}"; return 0; fi
+            if [[ "$line" =~ /mnt/[A-Za-z]/[Uu]sers/([^/[:space:]]+)/ ]]; then printf '%s' "${BASH_REMATCH[1]}"; return 0; fi
+            if [[ "$line" =~ /Users/([^/[:space:]]+)/ ]]; then printf '%s' "${BASH_REMATCH[1]}"; return 0; fi
+            if [[ "$line" =~ /home/([^/[:space:]]+)/ ]]; then printf '%s' "${BASH_REMATCH[1]}"; return 0; fi
+            return 1
+          }
+
+          files_scanned="$( { git grep -l -I -E -e '' -- "${EXCLUDES[@]}" 2>/dev/null || true; } | wc -l | tr -d ' ')"
+
+          matches="$(git grep -n -I -E -e "$CANDIDATE_RE" -- "${EXCLUDES[@]}" || true)"
+
+          leaks=""
+          while IFS= read -r match; do
+            [ -z "$match" ] && continue
+            file="${match%%:*}"
+            rest="${match#*:}"
+            lineno="${rest%%:*}"
+            content="${rest#*:}"
+            case "$content" in
+              *"$MARKER"*) continue ;;
+            esac
+            while IFS= read -r occ; do
+              [ -z "$occ" ] && continue
+              u="$(extract_user "$occ" || true)"
+              if ! is_allowed "$u"; then
+                leaks="${leaks}${file}:${lineno}"$'\n'
+                break
+              fi
+            done < <(printf '%s\n' "$content" | grep -oE "$CANDIDATE_RE" || true)
+          done <<< "$matches"
+
+          if [ -n "$leaks" ]; then
+            echo "::error::User-specific absolute path(s) detected. This leaks a local directory layout and OS user name."
+            while IFS= read -r loc; do
+              [ -z "$loc" ] && continue
+              echo "  ${loc}"
+            done <<< "$leaks"
+            echo ""
+            echo "Fix: replace the absolute path with a relative path, an environment variable (e.g. \$HOME), or a placeholder such as <user>."
+            echo "If a line must show a real example, append the marker: ${MARKER}"
+            exit 1
+          fi
+
+          echo "Path leak check passed — scanned ${files_scanned} tracked text file(s)."

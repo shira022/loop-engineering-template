@@ -38,6 +38,10 @@ jobs:
       - run: python3 scripts/validate-configs.py
       - run: python3 scripts/run-evals.py
 
+  path-leak:
+    name: Path Leak Check
+    uses: ./.github/workflows/path-leak-check.yml
+
   branch-validation:
     name: Branch Policy Validation
     if: github.event_name == 'pull_request'

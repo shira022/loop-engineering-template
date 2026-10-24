@@ -1,0 +1,219 @@
+# =============================================================================
+# Security Gate — リリース判定（ペネトレ結果の強制）
+# =============================================================================
+# 判定条件の正本: .agents/config/release-criteria.yaml
+# ⚠️ protected: エージェントによる自動変更禁止（人間承認必須）
+#
+# 方針:
+#  - PR: scope 検証 + 既存 findings のゲート判定のみ（LLM課金をPRで発生させない）
+#  - develop/main への push と手動実行: Strix を実行して findings を更新
+#  - フォークからのPRではシークレットを使わない（課金・悪用の防止）
+# =============================================================================
+
+name: security-gate
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+    inputs:
+      scan_mode:
+        description: "Strix scan mode"
+        type: choice
+        options: [quick, standard]
+        default: quick
+  schedule:
+    - cron: "0 19 * * 0" # 月曜 04:00 JST（日曜 19:00 UTC）
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+concurrency:
+  group: security-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scope:
+    name: scope integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Verify scope (fail closed)
+        run: |
+          set -o pipefail
+          python3 -m tools.pentest.scope_guard check --scope pentest/scope.yaml | tee scope-check.log
+      - name: Unit tests (guard must not regress)
+        run: python3 -m unittest discover -s tools/pentest/tests -v
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scope-check
+          path: scope-check.log
+
+  pentest:
+    name: strix (${{ inputs.scan_mode || 'quick' }})
+    needs: scope
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' && github.event.repository.fork == false)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      STRIX_LLM: ${{ vars.STRIX_LLM }}
+      LLM_API_BASE: ${{ vars.LLM_API_BASE }}
+      SCAN_MODE: ${{ inputs.scan_mode || 'quick' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Create base branch worktree
+        env:
+          BASE_REF: ${{ github.base_ref || 'develop' }}
+        run: |
+          git fetch origin "$BASE_REF"
+          git worktree add "$RUNNER_TEMP/base" "origin/$BASE_REF"
+      - name: Verify protected paths (pull requests, base tooling)
+        if: github.event_name == 'pull_request'
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          BASE_REF: ${{ github.base_ref || 'develop' }}
+          SCOPE_CHANGE_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'scope-change-approved') }}
+        run: |
+          AUTHORIZED_FLAG=""
+          if [ "$SCOPE_CHANGE_APPROVED" = "true" ]; then
+            AUTHORIZED_FLAG="--authorized-scope-change"
+          fi
+          if [ ! -f "$RUNNER_TEMP/base/tools/pentest/scope_guard.py" ]; then
+            echo "::notice::bootstrap: the base branch has no pentest harness yet; protected-path check skipped for this PR"
+            exit 0
+          fi
+          cd "$RUNNER_TEMP/base"
+          python3 -m tools.pentest.scope_guard verify-protected \
+            --root "$GITHUB_WORKSPACE" \
+            --base "origin/$BASE_REF" \
+            --policy "$RUNNER_TEMP/base/.agents/config/pentest-policy.yaml" \
+            --approvers "$RUNNER_TEMP/base/pentest/approvers.txt" \
+            --author "$AUTHOR" \
+            $AUTHORIZED_FLAG
+      - uses: astral-sh/setup-uv@v5
+      - name: Install Strix (pinned)
+        run: |
+          uv tool install strix-agent==1.7.0
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Run pentest through scope guard
+        id: scan
+        continue-on-error: true
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          set +e
+          python3 -m tools.pentest.scope_guard run \
+            --scope pentest/scope.yaml \
+            --engine strix \
+            --mode "$SCAN_MODE"
+          echo "guard_exit=$?"
+      - name: Locate run artifacts
+        id: locate
+        if: always()
+        run: |
+          RUN_DIR="$(ls -dt .pentest/runs/*/ 2>/dev/null | head -n 1)"
+          RUN_DIR="${RUN_DIR%/}"
+          echo "run_dir=$RUN_DIR" >> "$GITHUB_OUTPUT"
+          if [ -n "$RUN_DIR" ] && [ -f "$RUN_DIR/findings.sarif" ]; then
+            cp "$RUN_DIR/findings.sarif" findings.sarif
+          fi
+      - name: Upload SARIF
+        if: always() && hashFiles('findings.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: findings.sarif
+          category: strix
+      - name: Ingest findings
+        if: always() && steps.locate.outputs.run_dir != ''
+        env:
+          RUN_DIR: ${{ steps.locate.outputs.run_dir }}
+        run: |
+          python3 -m tools.pentest.collect_metrics ingest \
+            --run "$RUN_DIR"
+      - name: Gate (base tooling, PR artifacts)
+        run: |
+          cd "$RUNNER_TEMP/base"
+          python3 -m tools.pentest.collect_metrics gate \
+            --root "$GITHUB_WORKSPACE" \
+            --criteria "$RUNNER_TEMP/base/.agents/config/release-criteria.yaml" \
+            --policy "$RUNNER_TEMP/base/.agents/config/pentest-policy.yaml" \
+            --scope "$GITHUB_WORKSPACE/pentest/scope.yaml"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pentest-evidence
+          path: |
+            .pentest/runs/
+            .pentest/gate-result.json
+            .pentest/findings.jsonl
+
+  gate-only:
+    name: gate (existing findings)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Create base branch worktree
+        env:
+          BASE_REF: ${{ github.base_ref || 'develop' }}
+        run: |
+          git fetch origin "$BASE_REF"
+          git worktree add "$RUNNER_TEMP/base" "origin/$BASE_REF"
+      - name: Verify protected paths are unchanged (base tooling)
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          BASE_REF: ${{ github.base_ref || 'develop' }}
+          SCOPE_CHANGE_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'scope-change-approved') }}
+        run: |
+          AUTHORIZED_FLAG=""
+          if [ "$SCOPE_CHANGE_APPROVED" = "true" ]; then
+            AUTHORIZED_FLAG="--authorized-scope-change"
+          fi
+          if [ ! -f "$RUNNER_TEMP/base/tools/pentest/scope_guard.py" ]; then
+            echo "::notice::bootstrap: the base branch has no pentest harness yet; protected-path check skipped for this PR"
+            exit 0
+          fi
+          cd "$RUNNER_TEMP/base"
+          python3 -m tools.pentest.scope_guard verify-protected \
+            --root "$GITHUB_WORKSPACE" \
+            --base "origin/$BASE_REF" \
+            --policy "$RUNNER_TEMP/base/.agents/config/pentest-policy.yaml" \
+            --approvers "$RUNNER_TEMP/base/pentest/approvers.txt" \
+            --author "$AUTHOR" \
+            $AUTHORIZED_FLAG
+      - name: Evaluate release criteria (base tooling, PR artifacts)
+        run: |
+          if [ ! -f "$RUNNER_TEMP/base/.agents/config/release-criteria.yaml" ]; then
+            echo "::notice::bootstrap: the base branch has no release criteria yet; gate has no baseline to evaluate"
+            exit 0
+          fi
+          cd "$RUNNER_TEMP/base"
+          python3 -m tools.pentest.collect_metrics gate \
+            --root "$GITHUB_WORKSPACE" \
+            --criteria "$RUNNER_TEMP/base/.agents/config/release-criteria.yaml" \
+            --policy "$RUNNER_TEMP/base/.agents/config/pentest-policy.yaml" \
+            --scope "$GITHUB_WORKSPACE/pentest/scope.yaml"

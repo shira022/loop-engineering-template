@@ -2,14 +2,12 @@
   "mcpServers": {
     "slack": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@anthropic/slack-mcp-server"
-      ],
+      "args": ["-y", "<SLACK_MCP_PACKAGE>@<PINNED_VERSION>"],
       "env": {
         "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
         "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
       }
     }
-  }
+  },
+  "_note": "テンプレート。使用前に <SLACK_MCP_PACKAGE> を実在確認済みの公式パッケージ名に、<PINNED_VERSION> を公式の最新 exact バージョンに置換すること。env はこのサーバーに必要な最小キーのみを渡す。"
 }

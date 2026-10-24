@@ -17,27 +17,31 @@ jobs:
 
       - name: Determine release type
         id: type
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
-          TAG="${{ github.ref_name }}"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+            echo "::error::invalid tag name: $TAG"
+            exit 1
+          fi
           PRERELEASE="false"
           if echo "$TAG" | grep -qE '-(alpha|beta|rc|dev)'; then
             PRERELEASE="true"
           fi
-          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+          printf 'prerelease=%s\n' "$PRERELEASE" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
         id: notes
         run: |
           PREV_TAG=$(git tag --sort=-version:refname | head -2 | tail -1)
           if [ -z "$PREV_TAG" ]; then
-            echo "notes=Initial release" >> $GITHUB_OUTPUT
+            printf 'notes=Initial release\n' >> "$GITHUB_OUTPUT"
           else
             NOTES=$(git log --oneline --no-decorate "$PREV_TAG..HEAD" 2>/dev/null | grep -E '^(feat|fix|docs|chore|refactor|security)' || echo "No structured commits found")
+            DELIM="EOF_$(date +%s%N)_$RANDOM"
             {
-              echo "notes<<EOF"
-              echo "$NOTES"
-              echo "EOF"
-            } >> $GITHUB_OUTPUT
+              printf 'notes<<%s\n%s\n%s\n' "$DELIM" "$NOTES" "$DELIM"
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create GitHub Release

@@ -17,3 +17,7 @@ build/
 .devcontainer/.cache/
 # Agent execution traces
 traces/
+# pentest harness artifacts (may contain secrets/PII)
+.pentest/
+# Strix run transcripts (may contain secrets)
+strix_runs/

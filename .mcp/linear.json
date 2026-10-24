@@ -2,13 +2,11 @@
   "mcpServers": {
     "linear": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@michaellattanzi/linear-mcp-server"
-      ],
+      "args": ["-y", "<LINEAR_MCP_PACKAGE>@<PINNED_VERSION>"],
       "env": {
         "LINEAR_API_KEY": "${LINEAR_API_KEY}"
       }
     }
-  }
+  },
+  "_note": "テンプレート。使用前に <LINEAR_MCP_PACKAGE> を実在確認済みの公式パッケージ名に、<PINNED_VERSION> を公式の最新 exact バージョンに置換すること。env はこのサーバーに必要な最小キーのみを渡す。"
 }

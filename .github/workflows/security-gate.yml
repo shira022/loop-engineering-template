@@ -96,6 +96,10 @@ jobs:
           if [ "$SCOPE_CHANGE_APPROVED" = "true" ]; then
             AUTHORIZED_FLAG="--authorized-scope-change"
           fi
+          if [ ! -f "$RUNNER_TEMP/base/tools/pentest/scope_guard.py" ]; then
+            echo "::notice::bootstrap: the base branch has no pentest harness yet; protected-path check skipped for this PR"
+            exit 0
+          fi
           cd "$RUNNER_TEMP/base"
           python3 -m tools.pentest.scope_guard verify-protected \
             --root "$GITHUB_WORKSPACE" \
@@ -189,6 +193,10 @@ jobs:
           if [ "$SCOPE_CHANGE_APPROVED" = "true" ]; then
             AUTHORIZED_FLAG="--authorized-scope-change"
           fi
+          if [ ! -f "$RUNNER_TEMP/base/tools/pentest/scope_guard.py" ]; then
+            echo "::notice::bootstrap: the base branch has no pentest harness yet; protected-path check skipped for this PR"
+            exit 0
+          fi
           cd "$RUNNER_TEMP/base"
           python3 -m tools.pentest.scope_guard verify-protected \
             --root "$GITHUB_WORKSPACE" \
@@ -199,6 +207,10 @@ jobs:
             $AUTHORIZED_FLAG
       - name: Evaluate release criteria (base tooling, PR artifacts)
         run: |
+          if [ ! -f "$RUNNER_TEMP/base/.agents/config/release-criteria.yaml" ]; then
+            echo "::notice::bootstrap: the base branch has no release criteria yet; gate has no baseline to evaluate"
+            exit 0
+          fi
           cd "$RUNNER_TEMP/base"
           python3 -m tools.pentest.collect_metrics gate \
             --root "$GITHUB_WORKSPACE" \

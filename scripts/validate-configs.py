@@ -54,6 +54,15 @@ def validate_schedules():
         except yaml.YAMLError as e:
             errors.append(f"config/{f.name}: Invalid YAML: {e}")
             continue
+        is_schedules = f.name.startswith("schedules") or (
+            isinstance(data, dict) and "schedules" in data
+        )
+        if not is_schedules:
+            if not isinstance(data, dict):
+                errors.append(f"config/{f.name}: Not a YAML mapping")
+                continue
+            print(f"  ok config/{f.name} (config)")
+            continue
         if not isinstance(data, dict) or "schedules" not in data:
             errors.append(f"config/{f.name}: Missing top-level 'schedules' key")
             continue

@@ -4,15 +4,25 @@
 
 This directory contains MCP server configuration files. Each `.json` file defines a connector that your agent can use to interact with external services.
 
+## 必須: バージョン固定と env 最小化
+
+MCP テンプレートは実行前に、以下を必ず行うこと。
+
+1. **バージョン固定** — `npx -y <pkg>` のまま実行しない。実在確認済みの公式パッケージ名と exact バージョンを使い、`npx -y <pkg>@<exact-version>` に固定する。実在を確認していないバージョンを捏造しない。確認できない場合は `<PINNED_VERSION>` プレースホルダを残し、実行前に公式の最新 exact バージョンへ置換する。
+2. **env 最小化** — `env` にはそのサーバーが必要とする最小のキーだけを渡す。`GITHUB_TOKEN` などリポジトリ全体の資格情報を、Linear/Slack など無関係なサーバーへ渡さない。
+3. **資格情報の参照** — 値はコミットせず、実行環境の環境変数から `${VAR}` で参照する。
+
 ## Available Connectors
 
 | File | Service | Purpose |
 |------|---------|---------|
-| `github.json` | GitHub | Create PRs, review issues, manage repos, list runs |
-| `linear.json` | Linear | Update tickets when PRs are created |
-| `slack.json` | Slack | Notify channels of triage results |
+| `linear.json` | Linear | 設定例（サーバー定義は未同梱） |
+| `slack.json` | Slack | 設定例（サーバー定義は未同梱） |
 | `database.json` | SQLite | Local database access for sub-agents |
 | `example-config.json` | — | Template with documentation comments |
+
+> `linear.json` / `slack.json` do not bundle a server definition. Add a
+> verified package name and a pinned version yourself when you configure them.
 
 ## Setup
 
@@ -29,12 +39,12 @@ Each connector needs authentication. The method varies by service.
 export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxx"
 ```
 
-3. The `github.json` config reads `GITHUB_TOKEN` from the environment:
+3. The connector config reads `GITHUB_TOKEN` from the environment (see `example-config.json`):
 
 ```json
 {
   "command": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-github"],
+  "args": ["-y", "@modelcontextprotocol/server-github@<PINNED_VERSION>"],
   "env": {
     "GITHUB_TOKEN": "${GITHUB_TOKEN}"
   }
@@ -78,7 +88,7 @@ Once configured, your agent can use the connectors automatically. Example agent 
 ```json
 {
   "command": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-something"],
+  "args": ["-y", "@modelcontextprotocol/server-something@<PINNED_VERSION>"],
   "env": {
     "API_KEY": "${SOMETHING_API_KEY}"
   }

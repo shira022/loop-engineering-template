@@ -36,32 +36,82 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate task input
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TASK: ${{ inputs.task }}
+        run: |
+          if [ "$EVENT_NAME" = "schedule" ]; then
+            exit 0
+          fi
+          python3 - <<'PY'
+          import os
+          import sys
+
+          task = os.environ.get("TASK", "")
+          if len(task) > 4000:
+              print("::error::task exceeds 4000 characters")
+              sys.exit(1)
+
+          def allowed(ch):
+              if ch.isascii() and ch.isalnum():
+                  return True
+              if ch in " \t\n\r-_.,:/?!()[]'\"":
+                  return True
+              return (
+                  "\u3040" <= ch <= "\u30ff"
+                  or "\u3400" <= ch <= "\u4dbf"
+                  or "\u4e00" <= ch <= "\u9fff"
+              )
+
+          bad = [ch for ch in task if not allowed(ch)]
+          if bad:
+              print(f"::error::task contains disallowed characters: {bad[:5]!r}")
+              sys.exit(1)
+          PY
+
       - name: Create branch
         id: branch
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ "$EVENT_NAME" = "schedule" ]; then
             BRANCH="automation/daily-triage/$(date +%Y%m%d)"
           else
-            BRANCH="agent/${{ github.actor }}/$(date +%s)"
+            BRANCH="agent/$ACTOR/$(date +%s)"
           fi
           git checkout -b "$BRANCH"
-          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
-          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          DELIM="EOF_$(date +%s%N)_$RANDOM"
+          {
+            printf 'BRANCH<<%s\n%s\n%s\n' "$DELIM" "$BRANCH" "$DELIM"
+          } >> "$GITHUB_ENV"
+          {
+            printf 'branch<<%s\n%s\n%s\n' "$DELIM" "$BRANCH" "$DELIM"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Determine task
         id: task
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TASK: ${{ inputs.task }}
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ "$EVENT_NAME" = "schedule" ]; then
             TASK="Run daily CI triage: check latest CI runs on main, open issues, recent commits. Categorize findings. Write triage report to learnings/triage-$(date +%F).md"
           else
-            TASK="${{ inputs.task }}"
+            TASK="$INPUT_TASK"
           fi
-          echo "TASK=$TASK" >> $GITHUB_ENV
+          DELIM="EOF_$(date +%s%N)_$RANDOM"
+          {
+            printf 'TASK<<%s\n%s\n%s\n' "$DELIM" "$TASK" "$DELIM"
+          } >> "$GITHUB_ENV"
 
       - name: Install agent (${{ inputs.agent || 'stub' }})
         if: github.event_name != 'schedule'
+        env:
+          AGENT_INPUT: ${{ inputs.agent }}
         run: |
-          AGENT="${{ inputs.agent }}"
+          AGENT="$AGENT_INPUT"
           [ -z "$AGENT" ] && AGENT="stub"
           case "$AGENT" in
             hermes)
@@ -76,7 +126,7 @@ jobs:
               ;;
             claude)
               echo "::group::Install Claude Code"
-              npm install -g @anthropic/claude-code 2>/dev/null || echo "⚠️  Claude Code install failed, using stub mode"
+              npm install -g @anthropic-ai/claude-code@2.1.309 2>/dev/null || echo "⚠️  Claude Code install failed, using stub mode"
               echo "::endgroup::"
               ;;
           esac
@@ -91,10 +141,13 @@ jobs:
       - name: Run agent task (manual dispatch)
         if: github.event_name != 'schedule'
         id: agent-run
+        env:
+          TASK: ${{ env.TASK }}
+          AGENT_INPUT: ${{ inputs.agent }}
         run: |
-          echo "::notice title=Agent Task::${{ env.TASK }}"
-          bash scripts/agent-runner.sh "${AGENT:-stub}" "${{ env.TASK }}"
-          echo "status=completed" >> $GITHUB_OUTPUT
+          echo "::notice title=Agent Task::$TASK"
+          bash scripts/agent-runner.sh "${AGENT_INPUT:-stub}" "$TASK"
+          printf 'status=completed\n' >> "$GITHUB_OUTPUT"
 
       - name: Create Pull Request
         id: pr
@@ -124,17 +177,21 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: PR result
+        env:
+          PR_OUTCOME: ${{ steps.pr.outcome }}
+          PR_OPERATION: ${{ steps.pr.outputs.pull-request-operation }}
+          PR_NUMBER: ${{ steps.pr.outputs.pull-request-number }}
         run: |
-          if [ "${{ steps.pr.outcome }}" = "failure" ]; then
+          if [ "$PR_OUTCOME" = "failure" ]; then
             echo "⚠️  PR creation skipped or failed (no changes or branch issue). This is normal for scheduled runs with no new findings."
           else
-            echo "Pull request operation: ${{ steps.pr.outputs.pull-request-operation }}"
-            echo "Pull request number: ${{ steps.pr.outputs.pull-request-number }}"
-            if [ "${{ steps.pr.outputs.pull-request-operation }}" = "none" ]; then
+            echo "Pull request operation: $PR_OPERATION"
+            echo "Pull request number: $PR_NUMBER"
+            if [ "$PR_OPERATION" = "none" ]; then
               echo "✅ No changes detected — nothing to PR."
-            elif [ "${{ steps.pr.outputs.pull-request-operation }}" = "created" ]; then
-              echo "✅ PR #${{ steps.pr.outputs.pull-request-number }} created."
-            elif [ "${{ steps.pr.outputs.pull-request-operation }}" = "updated" ]; then
-              echo "✅ PR #${{ steps.pr.outputs.pull-request-number }} updated."
+            elif [ "$PR_OPERATION" = "created" ]; then
+              echo "✅ PR #$PR_NUMBER created."
+            elif [ "$PR_OPERATION" = "updated" ]; then
+              echo "✅ PR #$PR_NUMBER updated."
             fi
           fi

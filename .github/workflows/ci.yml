@@ -49,9 +49,12 @@ jobs:
     continue-on-error: true
     steps:
       - name: Validate source/target branch policy
+        env:
+          PR_SOURCE: ${{ github.head_ref }}
+          PR_TARGET: ${{ github.base_ref }}
         run: |
-          PR_SOURCE="${{ github.head_ref }}"
-          PR_TARGET="${{ github.base_ref }}"
+          # Values arrive via env: so branch names cannot inject shell code.
+          # Always quote "$PR_SOURCE" / "$PR_TARGET" below.
 
           # Allow dependabot branches (they follow their own convention)
           if echo "$PR_SOURCE" | grep -q '^dependabot/'; then

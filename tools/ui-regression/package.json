@@ -1,0 +1,16 @@
+{
+  "name": "@loop/ui-regression",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Route-sweeping UI regression harness: console errors, failed requests, HTTP errors, DOM/a11y heuristics, layout overflow and screenshot diffs.",
+  "scripts": {
+    "sweep": "node sweep.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "pixelmatch": "^7.0.0",
+    "playwright": "^1.64.0",
+    "pngjs": "^7.0.0"
+  }
+}

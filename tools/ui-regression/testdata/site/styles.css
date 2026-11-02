@@ -1,0 +1,69 @@
+/* Intentionally simple, deterministic styles for screenshot baselines. */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #1f2933;
+  background: #ffffff;
+}
+
+main {
+  padding: 24px;
+}
+
+h1 {
+  font-size: 28px;
+  margin: 0 0 12px;
+}
+
+h2 {
+  font-size: 20px;
+  margin: 20px 0 8px;
+}
+
+p {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+label {
+  display: block;
+  margin: 12px 0 4px;
+}
+
+input:not([type="hidden"]) {
+  padding: 6px 8px;
+  border: 1px solid #9aa5b1;
+  border-radius: 4px;
+}
+
+button {
+  margin: 8px 0;
+  padding: 6px 12px;
+  border: 1px solid #52606d;
+  border-radius: 4px;
+  background: #f5f7fa;
+}
+
+.wide {
+  width: 2400px;
+  height: 40px;
+  background: linear-gradient(90deg, #cbd2d9, #7b8794);
+  margin-top: 20px;
+}
+
+.ready {
+  color: #0b7285;
+}
+
+.icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: #cbd2d9;
+}

@@ -1,0 +1,108 @@
+{
+  "suite": "example-smoke",
+  "cases": [
+    {
+      "id": "json-mode",
+      "prompt": "Return a JSON object with answer set to OK.",
+      "tags": ["json"],
+      "checks": [
+        {"type": "json_valid"},
+        {
+          "type": "json_schema",
+          "schema": {
+            "type": "object",
+            "required": ["answer"],
+            "properties": {"answer": {"type": "string"}}
+          }
+        },
+        {"type": "regex", "pattern": "\"answer\"", "flags": ""},
+        {"type": "max_latency_ms", "value": 60000}
+      ]
+    },
+    {
+      "id": "tool-subset",
+      "prompt": "Search for the release notes and report what you found.",
+      "tags": ["tools"],
+      "checks": [
+        {"type": "contains", "value": "found"},
+        {"type": "not_contains", "value": "error"},
+        {"type": "tool_calls", "mode": "subset", "expected": ["search"]}
+      ]
+    },
+    {
+      "id": "tool-exact",
+      "prompt": "Look up the record and summarize it.",
+      "tags": ["tools", "strict"],
+      "checks": [
+        {"type": "contains", "value": "done"},
+        {"type": "tool_calls", "mode": "exact", "expected": ["lookup", "summarize"]}
+      ]
+    },
+    {
+      "id": "tool-none",
+      "prompt": "Answer directly without using any tools.",
+      "tags": ["tools"],
+      "checks": [
+        {"type": "contains", "value": "Plain answer"},
+        {"type": "regex", "pattern": "^Plain", "flags": "i"},
+        {"type": "tool_calls", "mode": "none", "expected": []}
+      ]
+    },
+    {
+      "id": "fenced-json",
+      "prompt": "Return a fenced JSON object with status ok and two items.",
+      "tags": ["json", "markdown"],
+      "checks": [
+        {"type": "json_valid"},
+        {
+          "type": "json_schema",
+          "schema": {
+            "type": "object",
+            "required": ["status", "items"],
+            "properties": {
+              "status": {"type": "string", "enum": ["ok"]},
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["id"],
+                  "properties": {"id": {"type": "integer"}}
+                }
+              }
+            }
+          }
+        },
+        {"type": "not_contains", "value": "TODO"}
+      ]
+    },
+    {
+      "id": "plain-text",
+      "prompt": "Reply with a short OK confirmation.",
+      "tags": ["text"],
+      "checks": [
+        {"type": "contains", "value": "OK"},
+        {"type": "not_contains", "value": "TODO"},
+        {"type": "max_latency_ms", "value": 60000}
+      ]
+    },
+    {
+      "id": "regex-flags",
+      "prompt": "Say hello and world on separate lines.",
+      "tags": ["text", "regex"],
+      "checks": [
+        {"type": "regex", "pattern": "^hello.*world$", "flags": "is"},
+        {"type": "contains", "value": "World"}
+      ]
+    },
+    {
+      "id": "latency-budget",
+      "prompt": "Return the text latency-ok.",
+      "tags": ["performance"],
+      "checks": [
+        {"type": "contains", "value": "latency"},
+        {"type": "tool_calls", "mode": "none", "expected": []},
+        {"type": "max_latency_ms", "value": 100}
+      ]
+    }
+  ]
+}

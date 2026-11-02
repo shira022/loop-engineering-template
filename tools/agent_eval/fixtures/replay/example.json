@@ -1,0 +1,49 @@
+{
+  "responses": {
+    "json-mode": {
+      "content": "{\"answer\":\"OK\"}",
+      "tool_calls": [],
+      "latency_ms": 4.2
+    },
+    "tool-subset": {
+      "content": "found 3 results in the release notes",
+      "tool_calls": [
+        {"name": "search", "arguments": {"query": "release notes"}}
+      ],
+      "latency_ms": 8.5
+    },
+    "tool-exact": {
+      "content": "done: record looked up and summarized",
+      "tool_calls": [
+        {"name": "lookup", "arguments": {"id": "record-1"}},
+        {"name": "summarize", "arguments": {"style": "short"}}
+      ],
+      "latency_ms": 11.0
+    },
+    "tool-none": {
+      "content": "Plain answer without tools.",
+      "tool_calls": [],
+      "latency_ms": 2.4
+    },
+    "fenced-json": {
+      "content": "```json\n{\"status\":\"ok\",\"items\":[{\"id\":1},{\"id\":2}]}\n```",
+      "tool_calls": [],
+      "latency_ms": 5.1
+    },
+    "plain-text": {
+      "content": "OK: all checks passed",
+      "tool_calls": [],
+      "latency_ms": 3.3
+    },
+    "regex-flags": {
+      "content": "Hello\nWorld",
+      "tool_calls": [],
+      "latency_ms": 1.7
+    },
+    "latency-budget": {
+      "content": "latency-ok",
+      "tool_calls": [],
+      "latency_ms": 12.3
+    }
+  }
+}

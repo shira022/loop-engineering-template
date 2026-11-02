@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Broken Page</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Broken page</h1>
+      <h1>Second heading (one too many)</h1>
+
+      <p id="dup">This id is duplicated on purpose.</p>
+      <p id="dup">The duplicate id makes the DOM ambiguous.</p>
+
+      <!-- Missing alt attribute (not even alt="") -->
+      <img src="/missing-image.png" width="64" height="64" />
+      <!-- Localhost-only request that is expected to fail at the transport layer -->
+      <img src="http://127.0.0.1:65534/refused.png" alt="unreachable" width="16" height="16" />
+
+      <form>
+        <!-- Input without a label, aria-label, aria-labelledby or placeholder -->
+        <input id="unlabelled" type="text" name="unlabelled" />
+        <!-- Button without text or an accessible name -->
+        <button type="button"><span class="icon"></span></button>
+      </form>
+
+      <!-- Link without visible text or aria-label -->
+      <p><a href="#nowhere"><span class="icon"></span></a></p>
+
+      <div class="wide"></div>
+    </main>
+
+    <script>
+      console.error("intentional console error from broken.html");
+      setTimeout(function () {
+        throw new Error("intentional unhandled exception from broken.html");
+      }, 0);
+    </script>
+  </body>
+</html>

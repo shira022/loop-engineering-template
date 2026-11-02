@@ -1,0 +1,21 @@
+{
+  "baseUrl": "http://127.0.0.1:8765",
+  "viewport": { "width": 1280, "height": 800 },
+  "routes": [
+    { "name": "home", "path": "/index.html" },
+    { "name": "clean", "path": "/clean.html", "waitFor": "#ready" },
+    { "name": "broken", "path": "/broken.html" }
+  ],
+  "thresholds": {
+    "maxConsoleErrors": 0,
+    "maxPageErrors": 0,
+    "maxFailedRequests": 0,
+    "maxHttpErrors": 0,
+    "maxA11yViolations": 0,
+    "maxLayoutOverflowPx": 0,
+    "pixelDiffRatio": 0.002
+  },
+  "a11y": true,
+  "screenshots": true,
+  "baselineDir": "tools/ui-regression/baseline"
+}
